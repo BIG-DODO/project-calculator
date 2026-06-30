@@ -258,6 +258,7 @@
         </table>
         <div class="action-bar" style="padding: 12px 16px 16px;">
           <button class="btn btn-secondary" onclick="copyResult()">复制结果</button>
+          <button class="btn btn-secondary" onclick="downloadTable()">下载表格</button>
           <button class="btn btn-secondary" onclick="resetForm()">重新计算</button>
         </div>
       </div>
@@ -486,6 +487,69 @@
         text += line + '\n';
       });
       navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板'));
+    }
+
+    function downloadTable() {
+      const title = document.getElementById('result-title').textContent;
+      const rows = Array.from(document.querySelectorAll('#result-body tr'));
+      
+      // 生成层级结构 CSV（5列：A=主项/其中/空, B=子项名称, C=数值, D=单位, E=备注）
+      let csv = '\uFEFF'; // UTF-8 BOM
+      csv += title + ',,,,\n';                       // 第1行：标题
+      csv += '指标名称,,数值,单位,备注\n';            // 第2行：表头
+      
+      const parentItems = ['总建筑面积', '机动车停车位数量', '非机动车停车位数量'];
+      
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const cells = row.querySelectorAll('td');
+        const name = cells[0].textContent.trim();
+        const val = cells[1].textContent.trim().replace(/,/g, '');
+        const unit = cells[2].textContent.trim();
+        const remark = cells[3].textContent.trim();
+        
+        if (parentItems.includes(name)) {
+          // 父项行：A列=名称, B列=空
+          csv += '"' + name + '","",' + val + ',"' + unit + '","' + remark + '"\n';
+          
+          // 处理接下来的2行作为子项
+          for (let j = 1; j <= 2 && (i + j) < rows.length; j++) {
+            const subRow = rows[i + j];
+            const subCells = subRow.querySelectorAll('td');
+            const subName = subCells[0].textContent.trim();
+            const subVal = subCells[1].textContent.trim().replace(/,/g, '');
+            const subUnit = subCells[2].textContent.trim();
+            const subRemark = subCells[3].textContent.trim();
+            
+            if (j === 1) {
+              csv += '"其中","' + subName + '",' + subVal + ',"' + subUnit + '","' + subRemark + '"\n';
+            } else {
+              csv += '",","' + subName + '",' + subVal + ',"' + subUnit + '","' + subRemark + '"\n';
+            }
+          }
+          i += 2; // 跳过已处理的子项
+        } else {
+          // 普通行：A列=名称, B列=空
+          csv += '"' + name + '","",' + val + ',"' + unit + '","' + remark + '"\n';
+        }
+      }
+      
+      // 生成文件名
+      const today = new Date();
+      const dateStr = today.getFullYear() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
+      const fileName = (title || '综合指标估算') + '_' + dateStr + '.csv';
+      
+      // 创建下载链接
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+      
+      showToast('表格已下载');
     }
 
     function resetForm() {
