@@ -64,6 +64,7 @@
       z-index: 1;
       max-width: 1400px;
       margin: 0 auto;
+      justify-content: space-between;
     }
     .brand-logo {
       width: 40px; height: 40px;
@@ -191,62 +192,123 @@
       gap: 8px;
     }
 
-    /* ---------- 配置摘要小卡片（右上角） ---------- */
+    /* ---------- 配置摘要小卡片（折叠在brand-banner右侧） ---------- */
     .config-summary {
-      position: absolute;
-      top: 24px;
-      right: 24px;
-      background: #fff;
-      border: 1.5px solid var(--brand-accent);
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
       border-radius: var(--radius-xs);
-      padding: 12px 16px;
-      box-shadow: var(--shadow);
+      padding: 8px 14px;
       cursor: pointer;
-      transition: all 0.2s;
-      max-width: 260px;
-      z-index: 10;
-      font-size: 0.8rem;
+      transition: all 0.25s;
+      min-width: 160px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      flex-shrink: 0;
     }
     .config-summary:hover {
-      box-shadow: var(--shadow-lg);
-      transform: translateY(-1px);
+      background: rgba(255,255,255,0.22);
+    }
+    .config-summary.open {
+      background: rgba(255,255,255,0.95);
+      border-color: var(--brand-accent);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      cursor: default;
+    }
+    .config-summary.open:hover {
+      background: rgba(255,255,255,0.95);
     }
     .config-summary-header {
-      font-weight: 700;
-      color: var(--brand-primary);
-      margin-bottom: 6px;
+      font-weight: 600;
+      color: #fff;
+      font-size: 0.8rem;
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    .config-summary.open .config-summary-header {
+      color: var(--brand-primary);
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed var(--neutral-200);
     }
     .config-summary-body {
+      display: none;
       color: var(--neutral-600);
       line-height: 1.5;
+      font-size: 0.75rem;
+    }
+    .config-summary.open .config-summary-body {
+      display: block;
     }
     .config-summary-body .summary-item {
       display: flex;
       justify-content: space-between;
       gap: 12px;
+      padding: 2px 0;
+      white-space: nowrap;
     }
     .config-summary-body .summary-item span:first-child {
       color: var(--neutral-500);
     }
     .config-summary-footer {
+      display: none;
       margin-top: 8px;
       padding-top: 8px;
       border-top: 1px dashed var(--neutral-200);
-      color: var(--brand-accent);
-      font-weight: 600;
-      font-size: 0.75rem;
       text-align: center;
+    }
+    .config-summary-footer .fold-btn,
+    .config-summary-footer .reconfig-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .config-summary-footer .fold-btn {
+      color: var(--neutral-500);
+      background: var(--neutral-100);
+      border: none;
+      margin-right: 6px;
+    }
+    .config-summary-footer .fold-btn:hover {
+      background: var(--neutral-200);
+    }
+    .config-summary-footer .reconfig-btn {
+      color: #fff;
+      background: var(--brand-gradient);
+      border: none;
+    }
+    .config-summary-footer .reconfig-btn:hover {
+      opacity: 0.9;
+    }
+    .config-summary.open .config-summary-footer {
+      display: flex;
+      justify-content: center;
+    }
+    .config-summary-hint {
+      color: rgba(255,255,255,0.65);
+      font-size: 0.7rem;
+      margin-top: 2px;
+      text-align: center;
+    }
+    .config-summary.open .config-summary-hint {
+      display: none;
     }
     @media (max-width: 640px) {
       .config-summary {
         position: static;
-        max-width: 100%;
-        margin-bottom: 16px;
-        border: 1.5px solid var(--brand-accent);
+        min-width: auto;
+        width: 100%;
+        margin-top: 8px;
+      }
+      .config-summary-header {
+        justify-content: center;
       }
     }
 
@@ -679,6 +741,16 @@
         <h1>未来园 <span class="en">FUTURE PARK</span></h1>
         <div class="tagline">让产业空间 链接未来</div>
       </div>
+      <!-- 配置摘要（生成后显示） -->
+      <div class="config-summary" id="config-summary" style="display:none;" onclick="toggleConfigSummary(event)">
+        <div class="config-summary-header">⚙️ 当前配置</div>
+        <div class="config-summary-hint">👆 点击展开</div>
+        <div class="config-summary-body" id="config-summary-body"></div>
+        <div class="config-summary-footer">
+          <button class="fold-btn" onclick="toggleConfigSummary(event)">👆 点击折叠</button>
+          <button class="reconfig-btn" onclick="backToInput(event)">↩ 重新配置</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -770,12 +842,6 @@
 
     <!-- 右侧内容 -->
     <main class="content" id="main-content">
-      <!-- 配置摘要（生成后显示在右上角） -->
-      <div class="config-summary" id="config-summary" style="display:none;" onclick="backToInput()">
-        <div class="config-summary-header">⚙️ 当前配置</div>
-        <div class="config-summary-body" id="config-summary-body"></div>
-        <div class="config-summary-footer">点击重新配置</div>
-      </div>
       <!-- 输入视图 -->
       <div class="view active" id="view-input">
         <div class="content-header">🏗️ 产品配置</div>
@@ -1353,21 +1419,39 @@
     // ==================== 配置摘要卡片 ====================
     function renderConfigSummary() {
       const items = [];
-      selectedProducts.forEach(id => {
+      // 产品按固定顺序排列
+      const order = ['light-steel', 'split', 'layer', 'tower', 'dorm', 'support'];
+      const sortedIds = Array.from(selectedProducts).sort((a, b) => order.indexOf(a) - order.indexOf(b));
+      
+      sortedIds.forEach(id => {
         const opts = productOptions[id];
         const name = getProductName(id);
         let detail = '';
-        if (opts.floors && opts.floors.length) detail += opts.floors.join('/') + '层 ';
-        if (opts.areas && opts.areas.length) detail += opts.areas.join('/') + 'm²';
+        if (opts.floors && opts.floors.length) {
+          const sortedFloors = [...opts.floors].sort((a, b) => a - b);
+          detail += sortedFloors.join('/') + '层 ';
+        }
+        if (opts.areas && opts.areas.length) {
+          const sortedAreas = [...opts.areas].sort((a, b) => a - b);
+          detail += sortedAreas.join('/') + 'm²';
+        }
         if (id === 'dorm') detail = '自动反推';
         items.push(`<div class="summary-item"><span>${name}</span><span>${detail || '已选'}</span></div>`);
       });
       document.getElementById('config-summary-body').innerHTML = items.join('');
     }
 
-    function backToInput() {
+    function toggleConfigSummary(e) {
+      if (e) e.stopPropagation();
+      const card = document.getElementById('config-summary');
+      card.classList.toggle('open');
+    }
+
+    function backToInput(e) {
+      if (e) e.stopPropagation();
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.getElementById('view-input').classList.add('active');
+      document.getElementById('config-summary').classList.remove('open');
       updateSidebarActive('input');
     }
 
@@ -1517,6 +1601,78 @@
         el.classList.remove('scrolled-right');
       }
     }
+
+    // ==================== 配置摘要卡片拖动 ====================
+    (function initDraggable() {
+      const card = document.getElementById('config-summary');
+      if (!card) return;
+      let isDragging = false, startX, startY, origLeft, origTop;
+      
+      card.addEventListener('mousedown', function(e) {
+        // 不响应按钮点击的拖动
+        if (e.target.closest('.fold-btn') || e.target.closest('.reconfig-btn')) return;
+        if (!card.classList.contains('open')) return; // 折叠时不拖动
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        const rect = card.getBoundingClientRect();
+        origLeft = rect.left;
+        origTop = rect.top;
+        card.style.position = 'fixed';
+        card.style.left = origLeft + 'px';
+        card.style.top = origTop + 'px';
+        card.style.margin = '0';
+        card.style.zIndex = '1000';
+        card.style.cursor = 'grabbing';
+        e.preventDefault();
+      });
+      
+      document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        card.style.left = (origLeft + dx) + 'px';
+        card.style.top = (origTop + dy) + 'px';
+      });
+      
+      document.addEventListener('mouseup', function() {
+        if (!isDragging) return;
+        isDragging = false;
+        card.style.cursor = 'default';
+      });
+      
+      // 触摸支持
+      card.addEventListener('touchstart', function(e) {
+        if (e.target.closest('.fold-btn') || e.target.closest('.reconfig-btn')) return;
+        if (!card.classList.contains('open')) return;
+        isDragging = true;
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        const rect = card.getBoundingClientRect();
+        origLeft = rect.left;
+        origTop = rect.top;
+        card.style.position = 'fixed';
+        card.style.left = origLeft + 'px';
+        card.style.top = origTop + 'px';
+        card.style.margin = '0';
+        card.style.zIndex = '1000';
+      }, { passive: false });
+      
+      document.addEventListener('touchmove', function(e) {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        card.style.left = (origLeft + dx) + 'px';
+        card.style.top = (origTop + dy) + 'px';
+        e.preventDefault();
+      }, { passive: false });
+      
+      document.addEventListener('touchend', function() {
+        isDragging = false;
+      });
+    })();
 
     // Toast 提示
     function showToast(msg) {
