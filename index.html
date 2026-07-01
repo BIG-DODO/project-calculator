@@ -72,7 +72,7 @@
       font-size: 1rem;
       color: var(--text);
       background: #fff;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s, opacity 0.2s;
       -webkit-appearance: none;
     }
     input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
@@ -82,6 +82,8 @@
     .row { display: flex; gap: 12px; }
     .row .form-group { flex: 1; }
     @media (max-width: 480px) { .row { flex-direction: column; gap: 0; } }
+
+    .hidden { display: none !important; }
 
     .btn {
       display: block;
@@ -100,6 +102,8 @@
     .btn-primary:hover { background: var(--primary-light); }
     .btn-secondary { background: var(--border); color: var(--text); margin-top: 10px; }
     .btn-secondary:hover { background: #cbd5e1; }
+    .btn-accent { background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff; margin-top: 10px; }
+    .btn-accent:hover { opacity: 0.92; }
 
     .result-section { display: none; margin-top: 16px; }
     .result-section.show { display: block; }
@@ -137,8 +141,8 @@
     .result-table .sub-row td { padding-left: 32px; }
     .result-table .sub-row td:first-child { padding-left: 28px; color: var(--text-muted); font-size: 0.8rem; }
 
-    .action-bar { display: flex; gap: 10px; margin-top: 12px; }
-    .action-bar .btn { flex: 1; margin-top: 0; }
+    .action-bar { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .action-bar .btn { flex: 1; margin-top: 0; min-width: 120px; }
 
     #toast {
       position: fixed;
@@ -186,6 +190,17 @@
           <div class="error">请选择区域</div>
         </div>
 
+        <div class="form-group hidden" id="group-land-use">
+          <label>用地性质 <span class="required">*</span></label>
+          <select id="input-land-use">
+            <option value="">请选择用地性质</option>
+            <option value="M">M（工业用地）</option>
+            <option value="C65">C65（科研设计用地）</option>
+          </select>
+          <div class="hint">仅上海区域需选择用地性质</div>
+          <div class="error">请选择用地性质</div>
+        </div>
+
         <div class="form-group" id="group-land">
           <label>规划用地面积 <span class="required">*</span></label>
           <input type="number" id="input-land" placeholder="单位：m²" min="0" step="0.01" />
@@ -200,12 +215,26 @@
             <div class="hint">1.00 ~ 6.00，保留两位小数</div>
             <div class="error">容积率必须在 1.00 ~ 6.00 之间</div>
           </div>
-          <div class="form-group" id="group-green">
-            <label>绿地率 <span class="required">*</span></label>
-            <input type="number" id="input-green" placeholder="0.00 ~ 40.00" min="0" max="40" step="0.01" />
-            <div class="hint">0% ~ 40%，保留两位小数</div>
-            <div class="error">绿地率必须在 0% ~ 40% 之间</div>
+          <div class="form-group" id="group-height-limit">
+            <label>限高 <span class="required">*</span></label>
+            <input type="number" id="input-height-limit" placeholder="10 ~ 150" min="10" max="150" step="1" />
+            <div class="hint">10 ~ 150 米，单位：m</div>
+            <div class="error">限高必须在 10 ~ 150 米之间</div>
           </div>
+        </div>
+
+        <div class="form-group" id="group-green">
+          <label>绿地率 <span class="required">*</span></label>
+          <input type="number" id="input-green" placeholder="0.00 ~ 40.00" min="0" max="40" step="0.01" />
+          <div class="hint">0% ~ 40%，保留两位小数</div>
+          <div class="error">绿地率必须在 0% ~ 40% 之间</div>
+        </div>
+
+        <div class="form-group hidden" id="group-rd-ratio">
+          <label>研发办公用房占比 <span class="required">*</span></label>
+          <input type="number" id="input-rd-ratio" placeholder="0.00 ~ 15.00" min="0" max="15" step="0.01" />
+          <div class="hint">0% ~ 15%，保留两位小数（仅上海 C65 用地需填写）</div>
+          <div class="error">研发办公用房占比必须在 0% ~ 15% 之间</div>
         </div>
 
         <div class="form-group" id="group-ancillary">
@@ -252,6 +281,7 @@
           <button class="btn btn-secondary" onclick="copyResult()">复制结果</button>
           <button class="btn btn-secondary" onclick="downloadTable()">下载表格</button>
           <button class="btn btn-secondary" onclick="resetForm()">重新计算</button>
+          <button class="btn btn-accent" onclick="goToProductConfig()">为本项目进行产品配置</button>
         </div>
       </div>
     </div>
@@ -260,6 +290,7 @@
   <div id="toast">已复制到剪贴板</div>
 
   <script>
+    // ---------- 格式化工具 ----------
     function fmtNum(n, decimals = 1) {
       if (n === undefined || n === null) return '-';
       const s = Number(n).toFixed(decimals);
@@ -275,6 +306,7 @@
       return (Number(n) * 100).toFixed(decimals) + '%';
     }
 
+    // ---------- 业务逻辑 ----------
     function getBuildingDensity(far) {
       if (far < 1.5) return 0.45;
       if (far < 2.0) return 0.42;
@@ -285,28 +317,75 @@
       return region === '杭州';
     }
 
+    // ---------- 动态字段显隐 ----------
+    const regionEl = document.getElementById('input-region');
+    const landUseEl = document.getElementById('input-land-use');
+    const groupLandUse = document.getElementById('group-land-use');
+    const groupRdRatio = document.getElementById('group-rd-ratio');
+
+    function updateConditionalFields() {
+      const region = regionEl.value;
+      const landUse = landUseEl.value;
+
+      if (region === '上海') {
+        groupLandUse.classList.remove('hidden');
+      } else {
+        groupLandUse.classList.add('hidden');
+        landUseEl.value = '';
+      }
+
+      if (region === '上海' && landUse === 'C65') {
+        groupRdRatio.classList.remove('hidden');
+      } else {
+        groupRdRatio.classList.add('hidden');
+        document.getElementById('input-rd-ratio').value = '';
+      }
+    }
+
+    regionEl.addEventListener('change', updateConditionalFields);
+    landUseEl.addEventListener('change', updateConditionalFields);
+
+    // ---------- 表单验证 ----------
     function validate() {
       let ok = true;
+      const region = regionEl.value;
+      const landUse = landUseEl.value;
+
       const fields = [
         { id: 'region', required: true },
         { id: 'land', required: true, min: 0 },
         { id: 'far', required: true, min: 1.0, max: 6.0 },
+        { id: 'height-limit', required: true, min: 10, max: 150 },
         { id: 'green', required: true, min: 0, max: 40 },
         { id: 'ancillary', required: true, min: 0, max: 30 },
         { id: 'factory', required: true, min: 0 },
         { id: 'support', required: true, min: 0 },
       ];
+
+      // 上海区域必须选用地性质
+      if (region === '上海') {
+        fields.push({ id: 'land-use', required: true });
+      }
+      // 上海+C65必须填研发占比
+      if (region === '上海' && landUse === 'C65') {
+        fields.push({ id: 'rd-ratio', required: true, min: 0, max: 15 });
+      }
+
       const missing = [];
       fields.forEach(f => {
         const el = document.getElementById('input-' + f.id);
         const group = document.getElementById('group-' + f.id);
+        // 跳过隐藏字段
+        if (group && group.classList.contains('hidden')) return;
+
         const val = el.value.trim();
         const num = parseFloat(val);
         let err = false;
         if (f.required && val === '') {
           err = true;
-          missing.push(group.querySelector('label').childNodes[0].textContent.trim());
-        } else if (f.id !== 'region' && val !== '' && isNaN(num)) {
+          const label = group.querySelector('label').childNodes[0].textContent.trim();
+          missing.push(label);
+        } else if (f.id !== 'region' && f.id !== 'land-use' && val !== '' && isNaN(num)) {
           err = true;
         } else if (f.min !== undefined && num < f.min) {
           err = true;
@@ -323,6 +402,7 @@
       return { ok, missing };
     }
 
+    // ---------- 核心计算 ----------
     function calculate() {
       const v = validate();
       if (!v.ok) {
@@ -336,9 +416,14 @@
 
       const name = document.getElementById('input-name').value.trim();
       const region = document.getElementById('input-region').value;
+      const landUse = document.getElementById('input-land-use').value;
       const landArea = parseFloat(document.getElementById('input-land').value);
       const far = parseFloat(document.getElementById('input-far').value);
+      const heightLimit = parseFloat(document.getElementById('input-height-limit').value);
       const greenRate = parseFloat(document.getElementById('input-green').value) / 100;
+      const rdRatio = document.getElementById('input-rd-ratio').value
+        ? parseFloat(document.getElementById('input-rd-ratio').value) / 100
+        : 0;
       const ancillaryRatio = parseFloat(document.getElementById('input-ancillary').value) / 100;
       const factoryIndex = parseFloat(document.getElementById('input-factory').value);
       const supportIndex = parseFloat(document.getElementById('input-support').value);
@@ -373,17 +458,65 @@
       const totalArea = aboveGroundArea + undergroundArea;
       const acre = landArea / 666.7;
 
+      // 保存数据供第二页使用
+      const projectData = {
+        projectName: name,
+        region: region,
+        landUseType: landUse || null,
+        landArea: landArea,
+        far: far,
+        heightLimit: heightLimit,
+        greenRate: greenRate,
+        rdRatio: rdRatio,
+        ancillaryRatio: ancillaryRatio,
+        factoryIndex: factoryIndex,
+        supportIndex: supportIndex,
+        calculated: {
+          buildingDensity: buildingDensity,
+          aboveGroundArea: aboveGroundArea,
+          greenArea: greenArea,
+          buildingBaseArea: buildingBaseArea,
+          roadArea: roadArea,
+          totalVehicle: totalVehicle,
+          totalNonVehicle: totalNonVehicle,
+          groundNonVehicle: groundNonVehicle,
+          undergroundNonVehicle: undergroundNonVehicle,
+          groundVehicle: groundVehicle,
+          undergroundVehicle: undergroundVehicle,
+          undergroundArea: undergroundArea,
+          totalArea: totalArea,
+          acre: acre
+        }
+      };
+      sessionStorage.setItem('projectCalculatorData', JSON.stringify(projectData));
+
       const titleText = name ? (name + '综合指标估算') : '综合指标估算';
       document.getElementById('result-title').textContent = titleText;
 
+      // 构建结果表格（带新增字段显示）
       const tbody = document.getElementById('result-body');
-      tbody.innerHTML = `
+      let html = '';
+
+      html += `
         <tr>
           <td>规划用地面积</td>
           <td class="num">${fmtNum(landArea, 1)}</td>
           <td class="unit">m²</td>
           <td class="remark">约${fmtNum(acre, 1)}亩</td>
-        </tr>
+        </tr>`;
+
+      if (landUse) {
+        const landUseText = landUse === 'M' ? 'M（工业用地）' : 'C65（科研设计用地）';
+        html += `
+        <tr>
+          <td>用地性质</td>
+          <td class="num">${landUseText}</td>
+          <td class="unit">—</td>
+          <td class="remark">—</td>
+        </tr>`;
+      }
+
+      html += `
         <tr>
           <td>总建筑面积</td>
           <td class="num">${fmtNum(totalArea, 1)}</td>
@@ -409,6 +542,12 @@
           <td class="remark">—</td>
         </tr>
         <tr>
+          <td>限高</td>
+          <td class="num">${fmtNum(heightLimit, 0)}</td>
+          <td class="unit">m</td>
+          <td class="remark">—</td>
+        </tr>
+        <tr>
           <td>绿地率</td>
           <td class="num">${fmtPercent(greenRate, 2)}</td>
           <td class="unit">—</td>
@@ -417,6 +556,24 @@
         <tr>
           <td>建筑密度</td>
           <td class="num">${fmtPercent(buildingDensity, 0)}</td>
+          <td class="unit">—</td>
+          <td class="remark">—</td>
+        </tr>`;
+
+      if (rdRatio > 0) {
+        html += `
+        <tr>
+          <td>研发办公用房占比</td>
+          <td class="num">${fmtPercent(rdRatio, 2)}</td>
+          <td class="unit">—</td>
+          <td class="remark">—</td>
+        </tr>`;
+      }
+
+      html += `
+        <tr>
+          <td>配套用房占比</td>
+          <td class="num">${fmtPercent(ancillaryRatio, 2)}</td>
           <td class="unit">—</td>
           <td class="remark">—</td>
         </tr>
@@ -455,13 +612,15 @@
           <td class="num">${fmtInt(undergroundNonVehicle)}</td>
           <td class="unit">辆</td>
           <td class="remark">—</td>
-        </tr>
-      `;
+        </tr>`;
+
+      tbody.innerHTML = html;
 
       document.getElementById('result-section').classList.add('show');
       document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // ---------- 复制结果 ----------
     function copyResult() {
       const title = document.getElementById('result-title').textContent;
       const rows = document.querySelectorAll('#result-body tr');
@@ -480,7 +639,7 @@
       navigator.clipboard.writeText(text).then(() => showToast('已复制到剪贴板'));
     }
 
-    // ---------- 下载表格：HTML Table（Excel 原生支持打开） ----------
+    // ---------- 下载表格 ----------
     function downloadTable() {
       const title = document.getElementById('result-title').textContent;
       const rows = Array.from(document.querySelectorAll('#result-body tr'));
@@ -499,10 +658,12 @@
           items.push({ type: 'parent', name, val, unit, remark });
           for (let j = 1; j <= 2 && (i + j) < rows.length; j++) {
             const subCells = rows[i + j].querySelectorAll('td');
+            const subName = subCells[0].textContent.trim();
+            if (parentItems.includes(subName)) break;
             items.push({
               type: 'sub',
               label: j === 1 ? '其中' : '',
-              name: subCells[0].textContent.trim(),
+              name: subName,
               val: subCells[1].textContent.trim().replace(/,/g, ''),
               unit: subCells[2].textContent.trim(),
               remark: subCells[3].textContent.trim()
@@ -514,7 +675,6 @@
         }
       }
 
-      // 构建 HTML 表格行
       let tableRows = '';
       items.forEach((item) => {
         if (item.type === 'normal') {
@@ -602,9 +762,22 @@
     function resetForm() {
       document.querySelectorAll('input').forEach(el => el.value = '');
       document.getElementById('input-region').value = '';
+      document.getElementById('input-land-use').value = '';
+      updateConditionalFields();
       document.querySelectorAll('.form-group').forEach(g => g.classList.remove('error'));
       document.getElementById('result-section').classList.remove('show');
+      sessionStorage.removeItem('projectCalculatorData');
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ---------- 跳转到产品配置 ----------
+    function goToProductConfig() {
+      const data = sessionStorage.getItem('projectCalculatorData');
+      if (!data) {
+        showToast('请先生成指标估算表');
+        return;
+      }
+      window.location.href = 'product-config.html';
     }
 
     function showToast(msg) {
