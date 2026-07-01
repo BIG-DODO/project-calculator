@@ -1515,8 +1515,9 @@
       
       // 5. 计算需要分配的总栋数（基于密度和计容双控）
       // 策略：先满足密度，再调整计容
-      // 按目标平均层数排序，优先分配接近目标层数的配置
       const targetAvgFloor = remainingCap / remainingBase;
+      
+      // 按目标平均层数排序，优先分配接近目标层数的配置
       
       // 按 unitCap/base 与目标平均层数的差距排序
       variableConfigs.sort((a, b) => {
