@@ -154,6 +154,14 @@
       padding: 24px;
       overflow-y: auto;
       height: calc(100vh - 78px);
+      position: relative;
+    }
+    /* 视图切换 */
+    .view { display: none; }
+    .view.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .content-header {
       font-size: 1.25rem;
@@ -181,6 +189,65 @@
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    /* ---------- 配置摘要小卡片（右上角） ---------- */
+    .config-summary {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: #fff;
+      border: 1.5px solid var(--brand-accent);
+      border-radius: var(--radius-xs);
+      padding: 12px 16px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: all 0.2s;
+      max-width: 260px;
+      z-index: 10;
+      font-size: 0.8rem;
+    }
+    .config-summary:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-1px);
+    }
+    .config-summary-header {
+      font-weight: 700;
+      color: var(--brand-primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+    }
+    .config-summary-body {
+      color: var(--neutral-600);
+      line-height: 1.5;
+    }
+    .config-summary-body .summary-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .config-summary-body .summary-item span:first-child {
+      color: var(--neutral-500);
+    }
+    .config-summary-footer {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--neutral-200);
+      color: var(--brand-accent);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+    @media (max-width: 640px) {
+      .config-summary {
+        position: static;
+        max-width: 100%;
+        margin-bottom: 16px;
+        border: 1.5px solid var(--brand-accent);
+      }
     }
 
     /* ---------- 数字卡片 ---------- */
@@ -703,6 +770,12 @@
 
     <!-- 右侧内容 -->
     <main class="content" id="main-content">
+      <!-- 配置摘要（生成后显示在右上角） -->
+      <div class="config-summary" id="config-summary" style="display:none;" onclick="backToInput()">
+        <div class="config-summary-header">⚙️ 当前配置</div>
+        <div class="config-summary-body" id="config-summary-body"></div>
+        <div class="config-summary-footer">点击重新配置</div>
+      </div>
       <!-- 输入视图 -->
       <div class="view active" id="view-input">
         <div class="content-header">🏗️ 产品配置</div>
@@ -1176,6 +1249,10 @@
       renderConfigOverview(result);
       renderCharts(result);
       renderIndicatorOverview(result);
+
+      // 显示配置摘要卡片
+      renderConfigSummary();
+      document.getElementById('config-summary').style.display = 'block';
     }
 
     // ==================== 简化配置计算（占位） ====================
@@ -1271,6 +1348,27 @@
             </table>
           </div>
         </div>`;
+    }
+
+    // ==================== 配置摘要卡片 ====================
+    function renderConfigSummary() {
+      const items = [];
+      selectedProducts.forEach(id => {
+        const opts = productOptions[id];
+        const name = getProductName(id);
+        let detail = '';
+        if (opts.floors && opts.floors.length) detail += opts.floors.join('/') + '层 ';
+        if (opts.areas && opts.areas.length) detail += opts.areas.join('/') + 'm²';
+        if (id === 'dorm') detail = '自动反推';
+        items.push(`<div class="summary-item"><span>${name}</span><span>${detail || '已选'}</span></div>`);
+      });
+      document.getElementById('config-summary-body').innerHTML = items.join('');
+    }
+
+    function backToInput() {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-input').classList.add('active');
+      updateSidebarActive('input');
     }
 
     // ==================== 图表渲染 ====================
@@ -1371,11 +1469,15 @@
       if (viewId === 'input') {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById('view-input').classList.add('active');
+        // 返回输入时隐藏配置摘要
+        document.getElementById('config-summary').style.display = 'none';
       } else if (!window.configResult) {
         alert('请先生成产品配置'); return;
       } else {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.add('active');
+        // 切换到结果视图时显示配置摘要
+        document.getElementById('config-summary').style.display = 'block';
       }
       updateSidebarActive(viewId);
     }
