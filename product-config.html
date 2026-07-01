@@ -466,7 +466,19 @@
     .accordion-body { padding: 16px; display: none; background: #fff; }
     .accordion-item.open .accordion-body { display: block; }
 
-    /* ---------- 类型按钮 ---------- */
+    /* ---------- 表格横向滚动 ---------- */
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .table-scroll .data-table {
+      min-width: 640px;
+    }
+    .table-scroll .data-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
     .type-filter {
       display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
     }
@@ -1063,13 +1075,15 @@
 
       document.getElementById('config-overview-content').innerHTML = `
         <div class="card">
-          <table class="data-table">
-            <thead><tr>
-              <th>厂房类型</th><th>产品类型</th><th>形式</th><th>总层高</th>
-              <th>单栋面积</th><th>栋数</th><th>户型总面积</th><th>户型总计容面积</th>
-            </tr></thead>
-            <tbody>${tbody}</tbody>
-          </table>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr>
+                <th>厂房类型</th><th>产品类型</th><th>形式</th><th>总层高</th>
+                <th>单栋面积</th><th>栋数</th><th>户型总面积</th><th>户型总计容面积</th>
+              </tr></thead>
+              <tbody>${tbody}</tbody>
+            </table>
+          </div>
         </div>`;
     }
 
@@ -1143,9 +1157,10 @@
       const calc = projectData.calculated;
       document.getElementById('indicator-overview-content').innerHTML = `
         <div class="card">
-          <table class="data-table">
-            <tbody>
-              <tr><td>规划用地面积</td><td class="num">${fmtNum(projectData.landArea, 1)}</td><td class="unit">m²</td><td>约${fmtNum(acre, 1)}亩</td></tr>
+          <div class="table-scroll">
+            <table class="data-table">
+              <tbody>
+                <tr><td>规划用地面积</td><td class="num">${fmtNum(projectData.landArea, 1)}</td><td class="unit">m²</td><td>约${fmtNum(acre, 1)}亩</td></tr>
               <tr><td>总建筑面积</td><td class="num">${fmtNum(result.totalArea + calc.undergroundArea, 1)}</td><td class="unit">m²</td><td>—</td></tr>
               <tr><td style="padding-left:32px;">地上建筑面积</td><td class="num">${fmtNum(result.totalArea, 1)}</td><td class="unit">m²</td><td>—</td></tr>
               <tr><td style="padding-left:32px;">地下建筑面积</td><td class="num">${fmtNum(calc.undergroundArea, 1)}</td><td class="unit">m²</td><td>含地下车库与设备用房</td></tr>
@@ -1161,6 +1176,7 @@
               <tr><td style="padding-left:32px;">地下非机动车停车位</td><td class="num">${fmtInt(calc.undergroundNonVehicle)}</td><td class="unit">辆</td><td>—</td></tr>
             </tbody>
           </table>
+          </div>
         </div>`;
     }
 
