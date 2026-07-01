@@ -102,7 +102,8 @@
       display: flex;
       max-width: 1400px;
       margin: 0 auto;
-      min-height: calc(100vh - 78px - 60px);
+      height: calc(100vh - 78px);
+      overflow: hidden;
     }
 
     /* ---------- 左侧导航 ---------- */
@@ -112,6 +113,8 @@
       border-right: 1px solid var(--neutral-200);
       padding: 20px 0;
       flex-shrink: 0;
+      overflow-y: auto;
+      height: calc(100vh - 78px);
     }
     .nav-group { margin-bottom: 8px; }
     .nav-group-title {
@@ -150,6 +153,7 @@
       flex: 1;
       padding: 24px;
       overflow-y: auto;
+      height: calc(100vh - 78px);
     }
     .content-header {
       font-size: 1.25rem;
@@ -466,12 +470,13 @@
       .price-row { grid-template-columns: 1fr; }
     }
     @media (max-width: 640px) {
-      .main-layout { flex-direction: column; }
-      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--neutral-200); padding: 12px 0; }
+      .main-layout { flex-direction: column; height: auto; overflow: visible; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--neutral-200); padding: 12px 0; height: auto; overflow-x: auto; overflow-y: hidden; white-space: nowrap; }
+      .nav-group { display: inline-block; vertical-align: top; margin-right: 16px; }
       .nav-group-title { display: none; }
-      .nav-item { display: inline-flex; padding: 8px 14px; border-left: none; border-radius: 20px; }
+      .nav-item { display: inline-flex; padding: 8px 14px; border-left: none; border-radius: 20px; white-space: nowrap; }
       .nav-item.active { border-left: none; background: var(--brand-light); }
-      .content { padding: 16px; }
+      .content { padding: 16px; height: auto; overflow: visible; }
       /* 配置输入左右分栏 → 上下堆叠 */
       .config-layout { flex-direction: column; }
       .config-left { width: 100%; }
