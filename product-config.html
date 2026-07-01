@@ -217,11 +217,7 @@
     }
 
     /* ---------- 产品类型选择（Step1） ---------- */
-    .product-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .product-grid { display: flex; flex-direction: column; gap: 8px; }
     .product-chip {
       background: #fff;
       border: 2px solid var(--neutral-200);
@@ -254,6 +250,38 @@
       padding: 2px 6px;
       border-radius: 10px;
       font-weight: 600;
+    }
+    /* 手机端：产品内联配置选项 */
+    .product-chip .mobile-options {
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--neutral-200);
+    }
+    .product-chip.selected .mobile-options {
+      display: block;
+    }
+    .product-chip .mobile-options .option-group {
+      margin-bottom: 10px;
+    }
+    .product-chip .mobile-options .option-group:last-child {
+      margin-bottom: 0;
+    }
+    .product-chip .mobile-options label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--neutral-600);
+      margin-bottom: 6px;
+    }
+    .product-chip .mobile-options .option-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .product-chip .mobile-options .pill {
+      padding: 5px 10px;
+      font-size: 0.75rem;
     }
 
     /* ---------- 子选项展开区 ---------- */
@@ -452,9 +480,14 @@
       .config-left .product-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+        gap: 10px;
       }
-      .config-left .product-chip { padding: 8px 10px; }
+      .config-left .product-chip {
+        padding: 10px;
+        margin-bottom: 0;
+      }
+      /* 手机端隐藏右侧独立的 Step2 折叠面板 */
+      #sub-options-card { display: none !important; }
     }
   </style>
 </head>
@@ -672,6 +705,7 @@
       grid.innerHTML = ALL_PRODUCTS.map(p => {
         const isAvailable = available.includes(p.id);
         const isSelected = selectedProducts.has(p.id);
+        const mobileOpts = isSelected ? renderMobileOptions(p.id) : '';
         return `
           <div class="product-chip ${isSelected ? 'selected' : ''} ${!isAvailable ? 'disabled' : ''}"
                data-id="${p.id}" onclick="${isAvailable ? `toggleProduct('${p.id}')` : ''}">
@@ -683,8 +717,51 @@
               </div>
               ${isSelected ? '<span style="color:var(--success);font-size:1rem;">✓</span>' : ''}
             </div>
+            ${mobileOpts}
           </div>`;
       }).join('');
+    }
+
+    function renderMobileOptions(productId) {
+      const opts = productOptions[productId];
+      if (!opts) return '';
+      let html = '<div class="mobile-options">';
+
+      if (productId === 'light-steel') {
+        html += renderMobilePills(productId, '面积段', [1000, 2000, 3000, 4000], 'areas', false);
+      } else if (productId === 'split') {
+        html += renderMobilePills(productId, '层数', [2, 3, 3.5, 4], 'floors', false);
+        html += renderMobilePills(productId, '面积段', [400, 540, 670, 800, 1000], 'areas', false);
+      } else if (productId === 'layer') {
+        html += renderMobilePills(productId, '层数(选1-2项)', [6, 7, 8, 9, 10], 'floors', true);
+        html += renderMobilePills(productId, '面积段', [600, 800, 1000, 1200], 'areas', false);
+      } else if (productId === 'tower') {
+        html += renderMobilePills(productId, '面积段(单选)', [1500, 1800, 2000, 2400], 'areas', true);
+      } else if (productId === 'support') {
+        html += renderMobilePills(productId, '建筑面积(单选)', [1200, 1500, 1800, 2100, 2400], 'areas', true);
+      } else if (productId === 'dorm') {
+        html += '<div style="color:var(--neutral-400);font-size:0.75rem;">层数和面积由系统自动反推</div>';
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function renderMobilePills(productId, label, options, key, single) {
+      const selected = productOptions[productId][key] || [];
+      const limit2 = key === 'floors' && productId === 'layer';
+      const limit = limit2 && selected.length >= 2;
+      return `
+        <div class="option-group">
+          <label>${label}</label>
+          <div class="option-pills">
+            ${options.map(v => {
+              const isSel = selected.includes(v);
+              const disabled = limit && !isSel;
+              return `<span class="pill ${isSel ? 'selected' : ''} ${disabled ? 'disabled' : ''}"
+                onclick="event.stopPropagation();${disabled ? '' : `toggleOption('${productId}', '${key}', ${v}, ${single || false})`}">${v}${key === 'areas' ? 'm²' : (key === 'floors' ? '层' : '')}</span>`;
+            }).join('')}
+          </div>
+        </div>`;
     }
 
     function toggleProduct(id) {
@@ -817,6 +894,7 @@
         else arr.push(value);
       }
       renderSubOptions();
+      renderProductGrid(); // 同步更新手机端内联选项
     }
 
     // ==================== 生成配置 ====================
