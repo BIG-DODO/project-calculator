@@ -218,17 +218,15 @@
 
     /* ---------- 产品类型选择（Step1） ---------- */
     .product-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
     .product-chip {
       background: #fff;
       border: 2px solid var(--neutral-200);
       border-radius: var(--radius-xs);
-      padding: 16px 12px;
-      text-align: center;
+      padding: 10px 12px;
       cursor: pointer;
       transition: all 0.2s;
       position: relative;
@@ -240,7 +238,7 @@
       box-shadow: 0 0 0 3px rgba(59,141,216,0.15);
     }
     .product-chip.disabled {
-      opacity: 0.4;
+      opacity: 0.35;
       cursor: not-allowed;
       border-color: var(--neutral-200);
     }
@@ -408,9 +406,25 @@
     footer .brand { color: #fff; font-weight: 600; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 6px; }
     footer .brand img { height: 14px; width: auto; filter: brightness(0) invert(1); }
 
-    /* ---------- 视图切换 ---------- */
-    .view { display: none; }
-    .view.active { display: block; }
+    /* ---------- 配置输入左右分栏 ---------- */
+    .config-layout { display: flex; gap: 20px; }
+    .config-left { width: 220px; flex-shrink: 0; }
+    .config-right { flex: 1; min-width: 0; }
+    .config-left .card { padding: 16px; }
+    .config-left .product-chip { margin-bottom: 8px; }
+
+    /* ---------- 折叠面板 ---------- */
+    .accordion-item { margin-bottom: 12px; border: 1.5px solid var(--neutral-200); border-radius: var(--radius-xs); overflow: hidden; }
+    .accordion-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; background: var(--neutral-50); cursor: pointer;
+      font-weight: 600; font-size: 0.85rem; color: var(--neutral-700);
+    }
+    .accordion-header:hover { background: var(--neutral-100); }
+    .accordion-header .toggle { font-size: 0.7rem; color: var(--neutral-400); transition: transform 0.2s; }
+    .accordion-item.open .accordion-header .toggle { transform: rotate(180deg); }
+    .accordion-body { padding: 16px; display: none; background: #fff; }
+    .accordion-item.open .accordion-body { display: block; }
 
     /* ---------- 类型按钮 ---------- */
     .type-filter {
@@ -504,50 +518,58 @@
       <div class="view active" id="view-input">
         <div class="content-header">🏗️ 产品配置</div>
 
-        <div class="card">
-          <div class="card-title">Step 1 · 选择产品类型</div>
-          <div class="product-grid" id="product-grid"></div>
-          <div id="product-validation-msg" style="color:var(--danger);font-size:0.8rem;margin-top:8px;display:none;"></div>
-        </div>
-
-        <div class="card" id="sub-options-card" style="display:none;">
-          <div class="card-title">Step 2 · 配置产品参数</div>
-          <div id="sub-options-container"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">💰 租金与售价（可选）</div>
-          <div class="price-row">
-            <div>
-              <div class="price-input">
-                <label>分栋租金</label>
-                <input type="number" id="rent-split" placeholder="0.00" min="0" step="0.01" />
-                <div class="unit-hint">元/天/m² · 轻钢厂房默认同此租金</div>
-              </div>
-              <div class="price-input">
-                <label>分栋售价</label>
-                <input type="number" id="price-split" placeholder="0" min="0" step="1" />
-                <div class="unit-hint">元 · 输入值低于1000将提示不可用</div>
-              </div>
-            </div>
-            <div>
-              <div class="price-input">
-                <label>分层租金</label>
-                <input type="number" id="rent-layer" placeholder="0.00" min="0" step="0.01" />
-                <div class="unit-hint">元/天/m² · 产业大厦默认同此租金</div>
-              </div>
-              <div class="price-input">
-                <label>分层售价</label>
-                <input type="number" id="price-layer" placeholder="0" min="0" step="1" />
-                <div class="unit-hint">元 · 产业大厦默认同此售价</div>
-              </div>
+        <div class="config-layout">
+          <!-- 左侧：Step 1 产品类型 -->
+          <div class="config-left">
+            <div class="card">
+              <div class="card-title">Step 1 · 产品类型</div>
+              <div id="product-grid"></div>
+              <div id="product-validation-msg" style="color:var(--danger);font-size:0.75rem;margin-top:10px;display:none;"></div>
             </div>
           </div>
-        </div>
 
-        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:1rem;" onclick="generateConfig()">
-          🚀 生成产品配置
-        </button>
+          <!-- 右侧：Step 2 + 租金 + 按钮 -->
+          <div class="config-right">
+            <div class="card" id="sub-options-card" style="display:none;">
+              <div class="card-title">Step 2 · 配置产品参数</div>
+              <div id="sub-options-container"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">💰 租金与售价（可选）</div>
+              <div class="price-row">
+                <div>
+                  <div class="price-input">
+                    <label>分栋租金</label>
+                    <input type="number" id="rent-split" placeholder="0.00" min="0" step="0.01" />
+                    <div class="unit-hint">元/天/m² · 轻钢厂房默认同此租金</div>
+                  </div>
+                  <div class="price-input">
+                    <label>分栋售价</label>
+                    <input type="number" id="price-split" placeholder="0" min="0" step="1" />
+                    <div class="unit-hint">元 · 低于1000将提示不可用</div>
+                  </div>
+                </div>
+                <div>
+                  <div class="price-input">
+                    <label>分层租金</label>
+                    <input type="number" id="rent-layer" placeholder="0.00" min="0" step="0.01" />
+                    <div class="unit-hint">元/天/m² · 产业大厦默认同此租金</div>
+                  </div>
+                  <div class="price-input">
+                    <label>分层售价</label>
+                    <input type="number" id="price-layer" placeholder="0" min="0" step="1" />
+                    <div class="unit-hint">元 · 产业大厦默认同此售价</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%;padding:14px;font-size:1rem;" onclick="generateConfig()">
+              🚀 生成产品配置
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- 默认状态 / 数字卡片 -->
@@ -626,10 +648,14 @@
         return `
           <div class="product-chip ${isSelected ? 'selected' : ''} ${!isAvailable ? 'disabled' : ''}"
                data-id="${p.id}" onclick="${isAvailable ? `toggleProduct('${p.id}')` : ''}">
-            ${p.id === 'split' || p.id === 'layer' ? '<span class="multi-badge">可多选</span>' : ''}
-            <div class="chip-icon">${p.icon}</div>
-            <div class="chip-name">${p.name}</div>
-            <div class="chip-hint">${isAvailable ? p.hint : '当前容积率不可用'}</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:1.3rem;">${p.icon}</span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:0.85rem;">${p.name}</div>
+                <div style="font-size:0.7rem;color:var(--neutral-400);">${isAvailable ? p.hint : '不可用'}</div>
+              </div>
+              ${isSelected ? '<span style="color:var(--success);font-size:1rem;">✓</span>' : ''}
+            </div>
           </div>`;
       }).join('');
     }
@@ -666,27 +692,51 @@
       card.style.display = 'block';
 
       let html = '';
+      let first = true;
       selectedProducts.forEach(id => {
         const opts = productOptions[id];
-        html += `<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--neutral-200);">`;
-        html += `<div style="font-weight:700;color:var(--neutral-900);margin-bottom:12px;font-size:0.9rem;">${getProductName(id)}</div>`;
+        let bodyHtml = '';
 
         if (id === 'light-steel') {
-          html += renderAreaPills(id, '面积段（基底，可多选）', [1000, 2000, 3000, 4000], 'areas');
+          bodyHtml += renderAreaPills(id, '面积段（可多选）', [1000, 2000, 3000, 4000], 'areas');
         } else if (id === 'split') {
-          html += renderFloorPills(id, '层数（可多选）', [2, 3, 3.5, 4], 'floors');
-          html += renderAreaPills(id, '面积段（基底，可多选）', [400, 540, 670, 800, 1000], 'areas');
+          bodyHtml += renderFloorPills(id, '层数（可多选）', [2, 3, 3.5, 4], 'floors');
+          bodyHtml += renderAreaPills(id, '面积段（可多选）', [400, 540, 670, 800, 1000], 'areas');
         } else if (id === 'layer') {
-          html += renderFloorPills(id, '层数（选1-2项）', [6, 7, 8, 9, 10], 'floors', true);
-          html += renderAreaPills(id, '面积段（基底，可多选）', [600, 800, 1000, 1200], 'areas');
+          bodyHtml += renderFloorPills(id, '层数（选1-2项）', [6, 7, 8, 9, 10], 'floors', true);
+          bodyHtml += renderAreaPills(id, '面积段（可多选）', [600, 800, 1000, 1200], 'areas');
         } else if (id === 'tower') {
-          html += renderAreaPills(id, '面积段（基底，单选）', [1500, 1800, 2000, 2400], 'areas', true);
+          bodyHtml += renderAreaPills(id, '面积段（单选）', [1500, 1800, 2000, 2400], 'areas', true);
         } else if (id === 'support') {
-          html += renderAreaPills(id, '建筑面积（单选）', [1200, 1500, 1800, 2100, 2400], 'areas', true);
+          bodyHtml += renderAreaPills(id, '建筑面积（单选）', [1200, 1500, 1800, 2100, 2400], 'areas', true);
+        } else if (id === 'dorm') {
+          bodyHtml += '<div style="color:var(--neutral-400);font-size:0.8rem;padding:8px 0;">层数和面积由系统根据配套占比自动反推，无需配置</div>';
         }
-        html += `</div>`;
+
+        html += `
+          <div class="accordion-item ${first ? 'open' : ''}" data-product="${id}">
+            <div class="accordion-header" onclick="toggleAccordion('${id}')">
+              <span>${getProductName(id)} ${getProductIcon(id)}</span>
+              <span class="toggle">▼</span>
+            </div>
+            <div class="accordion-body">${bodyHtml}</div>
+          </div>`;
+        first = false;
       });
       container.innerHTML = html;
+    }
+
+    function getProductIcon(id) {
+      const p = ALL_PRODUCTS.find(x => x.id === id);
+      return p ? p.icon : '';
+    }
+
+    function toggleAccordion(id) {
+      document.querySelectorAll('.accordion-item').forEach(item => {
+        if (item.dataset.product === id) {
+          item.classList.toggle('open');
+        }
+      });
     }
 
     function getProductName(id) {
