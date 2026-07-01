@@ -1,104 +1,1017 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>产品配置 - 项目综合指标估算工具</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>产品配置 - 未来园</title>
   <style>
     :root {
-      --primary: #2563eb;
-      --primary-light: #3b82f6;
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #1e293b;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --radius: 12px;
-      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --brand-primary: #0B2B5C;
+      --brand-secondary: #1E4E8C;
+      --brand-accent: #3B8DD8;
+      --brand-gradient: linear-gradient(135deg, #0B2B5C, #1E4E8C);
+      --brand-light: rgba(59, 141, 216, 0.08);
+      --neutral-900: #0F172A;
+      --neutral-700: #334155;
+      --neutral-600: #475569;
+      --neutral-400: #94A3B8;
+      --neutral-300: #CBD5E1;
+      --neutral-200: #E2E8F0;
+      --neutral-100: #F1F5F9;
+      --neutral-50: #F8FAFC;
+      --success: #059669;
+      --danger: #DC2626;
+      --warning: #D97706;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --radius-xs: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+      --shadow-lg: 0 4px 6px -1px rgba(0,0,0,0.08), 0 10px 24px -4px rgba(0,0,0,0.06);
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--neutral-100);
+      color: var(--neutral-900);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
+    }
+
+    /* ---------- 品牌横幅 ---------- */
+    .brand-banner {
+      background: var(--brand-gradient);
+      color: #fff;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .brand-banner::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+      border-radius: 50%;
+      transform: translate(50%, -40%);
+    }
+    .brand-content {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .brand-logo {
+      width: 40px; height: 40px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      filter: drop-shadow(0 1px 3px rgba(255,255,255,0.3));
     }
-    .container { max-width: 640px; margin: 0 auto; padding: 16px; width: 100%; }
+    .brand-logo img { width: 100%; height: 100%; object-fit: contain; }
+    .brand-text h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      line-height: 1.3;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .brand-text h1 .en {
+      font-size: 0.95rem;
+      font-weight: 700;
+      opacity: 0.9;
+      letter-spacing: 1.5px;
+    }
+    .brand-text .tagline {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-top: 1px;
+    }
+
+    /* ---------- 主布局 ---------- */
+    .main-layout {
+      display: flex;
+      max-width: 1400px;
+      margin: 0 auto;
+      min-height: calc(100vh - 78px - 60px);
+    }
+
+    /* ---------- 左侧导航 ---------- */
+    .sidebar {
+      width: 240px;
+      background: #fff;
+      border-right: 1px solid var(--neutral-200);
+      padding: 20px 0;
+      flex-shrink: 0;
+    }
+    .nav-group { margin-bottom: 8px; }
+    .nav-group-title {
+      padding: 8px 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--neutral-400);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      color: var(--neutral-600);
+      cursor: pointer;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover {
+      background: var(--neutral-50);
+      color: var(--neutral-900);
+    }
+    .nav-item.active {
+      background: var(--brand-light);
+      color: var(--brand-primary);
+      border-left-color: var(--brand-accent);
+      font-weight: 600;
+    }
+    .nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    /* ---------- 右侧内容 ---------- */
+    .content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    .content-header {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--neutral-900);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ---------- 卡片 ---------- */
     .card {
-      background: var(--card);
+      background: #fff;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 40px 24px;
-      text-align: center;
+      padding: 24px;
+      margin-bottom: 20px;
     }
-    .icon { font-size: 4rem; margin-bottom: 16px; }
-    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
-    p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px; }
-    .btn {
-      display: inline-block;
-      padding: 12px 28px;
-      border: none;
-      border-radius: 8px;
+    .card-title {
       font-size: 1rem;
-      font-weight: 600;
+      font-weight: 700;
+      color: var(--neutral-900);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ---------- 数字卡片 ---------- */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    .stat-card .label {
+      font-size: 0.75rem;
+      color: var(--neutral-400);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .stat-card .value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--brand-primary);
+      line-height: 1.2;
+    }
+    .stat-card .unit {
+      font-size: 0.7rem;
+      color: var(--neutral-400);
+      margin-top: 2px;
+    }
+
+    /* ---------- 产品类型选择（Step1） ---------- */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .product-chip {
+      background: #fff;
+      border: 2px solid var(--neutral-200);
+      border-radius: var(--radius-xs);
+      padding: 16px 12px;
       text-align: center;
       cursor: pointer;
-      text-decoration: none;
-      transition: opacity 0.2s;
+      transition: all 0.2s;
+      position: relative;
     }
-    .btn:hover { opacity: 0.9; }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .debug {
-      margin-top: 24px;
+    .product-chip:hover { border-color: var(--brand-accent); }
+    .product-chip.selected {
+      border-color: var(--brand-accent);
+      background: var(--brand-light);
+      box-shadow: 0 0 0 3px rgba(59,141,216,0.15);
+    }
+    .product-chip.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: var(--neutral-200);
+    }
+    .product-chip .chip-icon { font-size: 1.5rem; margin-bottom: 6px; }
+    .product-chip .chip-name { font-size: 0.85rem; font-weight: 600; }
+    .product-chip .chip-hint { font-size: 0.7rem; color: var(--neutral-400); margin-top: 2px; }
+    .product-chip .multi-badge {
+      position: absolute;
+      top: 6px; right: 6px;
+      background: var(--brand-accent);
+      color: #fff;
+      font-size: 0.6rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    /* ---------- 子选项展开区 ---------- */
+    .sub-options {
+      background: var(--neutral-50);
+      border-radius: var(--radius-xs);
       padding: 16px;
-      background: #f1f5f9;
-      border-radius: 8px;
-      text-align: left;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      font-family: monospace;
-      overflow-x: auto;
+      margin-top: 12px;
+      border: 1px solid var(--neutral-200);
     }
-    .debug h3 { font-size: 0.85rem; color: var(--text); margin-bottom: 8px; }
-    .debug pre { white-space: pre-wrap; word-break: break-all; }
+    .sub-options-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--neutral-700);
+      margin-bottom: 12px;
+    }
+    .option-group { margin-bottom: 16px; }
+    .option-group:last-child { margin-bottom: 0; }
+    .option-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--neutral-600);
+      margin-bottom: 8px;
+    }
+    .option-group label .hint {
+      font-weight: 400;
+      color: var(--neutral-400);
+      margin-left: 4px;
+    }
+    .option-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pill {
+      padding: 8px 16px;
+      border: 1.5px solid var(--neutral-200);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: #fff;
+      color: var(--neutral-600);
+    }
+    .pill:hover { border-color: var(--brand-accent); color: var(--brand-primary); }
+    .pill.selected {
+      border-color: var(--brand-accent);
+      background: var(--brand-light);
+      color: var(--brand-primary);
+      font-weight: 600;
+    }
+    .pill.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: var(--neutral-200);
+    }
+
+    /* ---------- 租金售价输入 ---------- */
+    .price-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .price-input { margin-bottom: 12px; }
+    .price-input label { font-size: 0.8rem; font-weight: 600; color: var(--neutral-600); margin-bottom: 6px; display: block; }
+    .price-input input {
+      width: 100%; padding: 10px 12px;
+      border: 1.5px solid var(--neutral-200); border-radius: var(--radius-xs);
+      font-size: 0.9rem; transition: all 0.2s;
+    }
+    .price-input input:focus { outline: none; border-color: var(--brand-accent); box-shadow: 0 0 0 3px rgba(59,141,216,0.12); }
+    .price-input .unit-hint { font-size: 0.7rem; color: var(--neutral-400); margin-top: 3px; }
+
+    /* ---------- 按钮 ---------- */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 12px 24px; border: none; border-radius: var(--radius-xs);
+      font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--brand-gradient); color: #fff;
+      box-shadow: 0 2px 8px rgba(11,43,92,0.25);
+    }
+    .btn-primary:hover { box-shadow: 0 4px 12px rgba(11,43,92,0.3); }
+    .btn-secondary {
+      background: var(--neutral-100); color: var(--neutral-700);
+      border: 1px solid var(--neutral-200);
+    }
+    .btn-secondary:hover { background: var(--neutral-200); }
+
+    /* ---------- 表格 ---------- */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .data-table th, .data-table td {
+      padding: 10px 12px; border: 1px solid var(--neutral-200);
+      text-align: left; vertical-align: top;
+    }
+    .data-table th {
+      background: var(--neutral-100);
+      font-weight: 600; color: var(--neutral-600);
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .data-table tr:nth-child(even) td { background: #fafafa; }
+    .data-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* ---------- 图表占位 ---------- */
+    .chart-placeholder {
+      background: var(--neutral-50);
+      border-radius: var(--radius-xs);
+      padding: 60px 40px;
+      text-align: center;
+      color: var(--neutral-400);
+      border: 2px dashed var(--neutral-200);
+    }
+    .chart-placeholder .icon { font-size: 3rem; margin-bottom: 12px; }
+
+    /* ---------- 楼层剖面图 ---------- */
+    .floor-section { display: flex; align-items: flex-end; gap: 24px; margin: 16px 0; }
+    .floor-stack {
+      display: flex; flex-direction: column-reverse;
+      border: 2px solid var(--neutral-300);
+      border-radius: 4px; overflow: hidden;
+    }
+    .floor-layer {
+      display: flex; align-items: center; justify-content: center;
+      padding: 8px 16px; font-size: 0.75rem; font-weight: 600;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      min-width: 120px;
+    }
+    .floor-layer.first { background: var(--brand-primary); color: #fff; }
+    .floor-layer.second { background: var(--brand-secondary); color: #fff; }
+    .floor-layer.standard { background: var(--brand-accent); color: #fff; }
+    .floor-layer.top { background: #60A5FA; color: #fff; }
+    .floor-info { font-size: 0.8rem; color: var(--neutral-600); }
+
+    /* ---------- 电梯配置卡片 ---------- */
+    .elevator-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .elevator-card {
+      background: #fff; border: 1.5px solid var(--neutral-200);
+      border-radius: var(--radius-xs); padding: 16px; text-align: center;
+    }
+    .elevator-card .type-name { font-size: 0.8rem; font-weight: 600; color: var(--neutral-700); margin-bottom: 8px; }
+    .elevator-card .elevator-icons { display: flex; justify-content: center; gap: 16px; margin-top: 8px; }
+    .elevator-item { text-align: center; }
+    .elevator-item .icon { font-size: 1.5rem; }
+    .elevator-item .count { font-size: 1.1rem; font-weight: 700; color: var(--brand-primary); }
+    .elevator-item .label { font-size: 0.7rem; color: var(--neutral-400); }
+
+    /* ---------- 页脚 ---------- */
+    footer {
+      background: var(--brand-primary); color: rgba(255,255,255,0.6);
+      text-align: center; padding: 16px; font-size: 0.75rem;
+    }
+    footer .brand { color: #fff; font-weight: 600; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    footer .brand img { height: 14px; width: auto; filter: brightness(0) invert(1); }
+
+    /* ---------- 视图切换 ---------- */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ---------- 类型按钮 ---------- */
+    .type-filter {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    }
+    .type-filter .pill { padding: 6px 14px; font-size: 0.8rem; }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 200px; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .price-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .main-layout { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--neutral-200); padding: 12px 0; }
+      .nav-group-title { display: none; }
+      .nav-item { display: inline-flex; padding: 8px 14px; border-left: none; border-radius: 20px; }
+      .nav-item.active { border-left: none; background: var(--brand-light); }
+      .content { padding: 16px; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <div class="icon">🏗️</div>
-      <h1>产品配置页面</h1>
-      <p>产品配置功能正在开发中，敬请期待……</p>
-      <a href="index.html" class="btn btn-primary">← 返回指标估算</a>
-
-      <div class="debug" id="debug-data" style="display:none;">
-        <h3>📦 从第一页传入的数据</h3>
-        <pre id="debug-content"></pre>
+  <!-- 品牌横幅 -->
+  <div class="brand-banner">
+    <div class="brand-content">
+      <div class="brand-logo"><img src="logo.png?v=2" alt="未来园"></div>
+      <div class="brand-text">
+        <h1>未来园 <span class="en">FUTURE PARK</span></h1>
+        <div class="tagline">让产业空间 链接未来</div>
       </div>
     </div>
   </div>
 
+  <div class="main-layout">
+    <!-- 左侧导航 -->
+    <nav class="sidebar" id="sidebar">
+      <div class="nav-group">
+        <div class="nav-group-title">配置向导</div>
+        <div class="nav-item active" data-view="input" onclick="switchView('input')">
+          <span class="icon">⚙️</span> 配置输入
+        </div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">产品配置</div>
+        <div class="nav-item" data-view="config-overview" onclick="switchView('config-overview')">
+          <span class="icon">📋</span> 产品配置一览
+        </div>
+        <div class="nav-item" onclick="downloadConfigDetail()">
+          <span class="icon">⬇️</span> 产品配置详表下载
+        </div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">产品分析</div>
+        <div class="nav-item" data-view="chart-type" onclick="switchView('chart-type')">
+          <span class="icon">🥧</span> 产品业态分布
+        </div>
+        <div class="nav-item" data-view="chart-count" onclick="switchView('chart-count')">
+          <span class="icon">📊</span> 产品配置数量
+        </div>
+        <div class="nav-item" data-view="chart-area" onclick="switchView('chart-area')">
+          <span class="icon">📐</span> 产品面积段分布
+        </div>
+        <div class="nav-item" data-view="chart-load" onclick="switchView('chart-load')">
+          <span class="icon">🏋️</span> 产品荷载分布
+        </div>
+        <div class="nav-item" data-view="chart-height" onclick="switchView('chart-height')">
+          <span class="icon">🏢</span> 层高与层数分布
+        </div>
+        <div class="nav-item" data-view="chart-elevator" onclick="switchView('chart-elevator')">
+          <span class="icon">🛗</span> 产品电梯配置
+        </div>
+        <div class="nav-item" data-view="chart-layout" onclick="switchView('chart-layout')">
+          <span class="icon">🏠</span> 产品户型建议
+        </div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">综合指标</div>
+        <div class="nav-item" data-view="indicator-overview" onclick="switchView('indicator-overview')">
+          <span class="icon">📋</span> 综合指标一览
+        </div>
+        <div class="nav-item" onclick="downloadIndicatorDetail()">
+          <span class="icon">⬇️</span> 总体经济技术指标表下载
+        </div>
+      </div>
+    </nav>
+
+    <!-- 右侧内容 -->
+    <main class="content" id="main-content">
+      <!-- 输入视图 -->
+      <div class="view active" id="view-input">
+        <div class="content-header">🏗️ 产品配置</div>
+
+        <div class="card">
+          <div class="card-title">Step 1 · 选择产品类型</div>
+          <div class="product-grid" id="product-grid"></div>
+          <div id="product-validation-msg" style="color:var(--danger);font-size:0.8rem;margin-top:8px;display:none;"></div>
+        </div>
+
+        <div class="card" id="sub-options-card" style="display:none;">
+          <div class="card-title">Step 2 · 配置产品参数</div>
+          <div id="sub-options-container"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">💰 租金与售价（可选）</div>
+          <div class="price-row">
+            <div>
+              <div class="price-input">
+                <label>分栋租金</label>
+                <input type="number" id="rent-split" placeholder="0.00" min="0" step="0.01" />
+                <div class="unit-hint">元/天/m² · 轻钢厂房默认同此租金</div>
+              </div>
+              <div class="price-input">
+                <label>分栋售价</label>
+                <input type="number" id="price-split" placeholder="0" min="0" step="1" />
+                <div class="unit-hint">元 · 输入值低于1000将提示不可用</div>
+              </div>
+            </div>
+            <div>
+              <div class="price-input">
+                <label>分层租金</label>
+                <input type="number" id="rent-layer" placeholder="0.00" min="0" step="0.01" />
+                <div class="unit-hint">元/天/m² · 产业大厦默认同此租金</div>
+              </div>
+              <div class="price-input">
+                <label>分层售价</label>
+                <input type="number" id="price-layer" placeholder="0" min="0" step="1" />
+                <div class="unit-hint">元 · 产业大厦默认同此售价</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:1rem;" onclick="generateConfig()">
+          🚀 生成产品配置
+        </button>
+      </div>
+
+      <!-- 默认状态 / 数字卡片 -->
+      <div class="view" id="view-dashboard">
+        <div class="content-header">📊 配置概览</div>
+        <div class="stat-grid" id="stat-cards"></div>
+        <div id="dashboard-content"></div>
+      </div>
+
+      <!-- 其他视图占位 -->
+      <div class="view" id="view-config-overview"><div class="content-header">📋 产品配置一览</div><div id="config-overview-content"></div></div>
+      <div class="view" id="view-chart-type"><div class="content-header">🥧 产品业态分布</div><div id="chart-type-content"></div></div>
+      <div class="view" id="view-chart-count"><div class="content-header">📊 产品配置数量</div><div id="chart-count-content"></div></div>
+      <div class="view" id="view-chart-area"><div class="content-header">📐 产品面积段分布</div><div id="chart-area-content"></div></div>
+      <div class="view" id="view-chart-load"><div class="content-header">🏋️ 产品荷载分布</div><div id="chart-load-content"></div></div>
+      <div class="view" id="view-chart-height"><div class="content-header">🏢 层高与层数分布</div><div id="chart-height-content"></div></div>
+      <div class="view" id="view-chart-elevator"><div class="content-header">🛗 产品电梯配置</div><div id="chart-elevator-content"></div></div>
+      <div class="view" id="view-chart-layout"><div class="content-header">🏠 产品户型建议</div><div id="chart-layout-content"></div></div>
+      <div class="view" id="view-indicator-overview"><div class="content-header">📋 综合指标一览</div><div id="indicator-overview-content"></div></div>
+    </main>
+  </div>
+
+  <footer>
+    <div class="brand"><img src="logo.png?v=2" alt=""> 未来园 FUTURE PARK</div>
+    <div>让产业空间 链接未来</div>
+  </footer>
+
   <script>
-    // 读取第一页传入的数据并展示（调试用）
-    (function() {
+    // ==================== 全局状态 ====================
+    let projectData = null;
+    let selectedProducts = new Set();
+    let productOptions = {};
+
+    // ==================== 初始化 ====================
+    (function init() {
       const raw = sessionStorage.getItem('projectCalculatorData');
-      if (raw) {
-        try {
-          const data = JSON.parse(raw);
-          const el = document.getElementById('debug-data');
-          const content = document.getElementById('debug-content');
-          el.style.display = 'block';
-          content.textContent = JSON.stringify(data, null, 2);
-        } catch (e) {
-          console.error('解析数据失败', e);
+      if (!raw) {
+        document.getElementById('main-content').innerHTML = `
+          <div class="card" style="text-align:center;padding:60px 40px;">
+            <div style="font-size:3rem;margin-bottom:16px;">📦</div>
+            <h3 style="margin-bottom:8px;">未找到项目数据</h3>
+            <p style="color:var(--neutral-400);margin-bottom:20px;">请先从指标估算页面生成数据</p>
+            <a href="index.html" class="btn btn-primary">← 返回指标估算</a>
+          </div>`;
+        return;
+      }
+      projectData = JSON.parse(raw);
+      renderProductGrid();
+    })();
+
+    // ==================== 产品类型网格 ====================
+    const ALL_PRODUCTS = [
+      { id: 'light-steel', name: '轻钢厂房', icon: '🏭', hint: '1层+火车头' },
+      { id: 'split', name: '分栋厂房', icon: '🏢', hint: '2~4层' },
+      { id: 'layer', name: '分层厂房', icon: '🏗️', hint: '6~10层' },
+      { id: 'tower', name: '产业大厦', icon: '🌆', hint: '高层研发' },
+      { id: 'dorm', name: '配套宿舍', icon: '🏘️', hint: '配套用房' },
+      { id: 'support', name: '配套楼', icon: '🏪', hint: '配套服务' },
+    ];
+
+    function getAvailableProducts(far) {
+      if (far < 1.5) return ['light-steel', 'split', 'dorm', 'support'];
+      if (far < 2.0) return ['split', 'layer', 'dorm', 'support'];
+      return ['split', 'layer', 'tower', 'dorm', 'support'];
+    }
+
+    function renderProductGrid() {
+      const far = projectData.far;
+      const available = getAvailableProducts(far);
+      const grid = document.getElementById('product-grid');
+
+      grid.innerHTML = ALL_PRODUCTS.map(p => {
+        const isAvailable = available.includes(p.id);
+        const isSelected = selectedProducts.has(p.id);
+        return `
+          <div class="product-chip ${isSelected ? 'selected' : ''} ${!isAvailable ? 'disabled' : ''}"
+               data-id="${p.id}" onclick="${isAvailable ? `toggleProduct('${p.id}')` : ''}">
+            ${p.id === 'split' || p.id === 'layer' ? '<span class="multi-badge">可多选</span>' : ''}
+            <div class="chip-icon">${p.icon}</div>
+            <div class="chip-name">${p.name}</div>
+            <div class="chip-hint">${isAvailable ? p.hint : '当前容积率不可用'}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function toggleProduct(id) {
+      if (selectedProducts.has(id)) {
+        selectedProducts.delete(id);
+        delete productOptions[id];
+      } else {
+        selectedProducts.add(id);
+        initProductOptions(id);
+      }
+      renderProductGrid();
+      renderSubOptions();
+    }
+
+    // ==================== 子选项配置 ====================
+    function initProductOptions(id) {
+      const defaults = {
+        'light-steel': { floors: [1], areas: [] },
+        'split': { floors: [], areas: [] },
+        'layer': { floors: [], areas: [] },
+        'tower': { areas: [] },
+        'dorm': {},
+        'support': { areas: [] },
+      };
+      productOptions[id] = JSON.parse(JSON.stringify(defaults[id]));
+    }
+
+    function renderSubOptions() {
+      const container = document.getElementById('sub-options-container');
+      const card = document.getElementById('sub-options-card');
+      if (selectedProducts.size === 0) { card.style.display = 'none'; return; }
+      card.style.display = 'block';
+
+      let html = '';
+      selectedProducts.forEach(id => {
+        const opts = productOptions[id];
+        html += `<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--neutral-200);">`;
+        html += `<div style="font-weight:700;color:var(--neutral-900);margin-bottom:12px;font-size:0.9rem;">${getProductName(id)}</div>`;
+
+        if (id === 'light-steel') {
+          html += renderAreaPills(id, '面积段（基底，可多选）', [1000, 2000, 3000, 4000], 'areas');
+        } else if (id === 'split') {
+          html += renderFloorPills(id, '层数（可多选）', [2, 3, 3.5, 4], 'floors');
+          html += renderAreaPills(id, '面积段（基底，可多选）', [400, 540, 670, 800, 1000], 'areas');
+        } else if (id === 'layer') {
+          html += renderFloorPills(id, '层数（选1-2项）', [6, 7, 8, 9, 10], 'floors', true);
+          html += renderAreaPills(id, '面积段（基底，可多选）', [600, 800, 1000, 1200], 'areas');
+        } else if (id === 'tower') {
+          html += renderAreaPills(id, '面积段（基底，单选）', [1500, 1800, 2000, 2400], 'areas', true);
+        } else if (id === 'support') {
+          html += renderAreaPills(id, '建筑面积（单选）', [1200, 1500, 1800, 2100, 2400], 'areas', true);
+        }
+        html += `</div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function getProductName(id) {
+      const p = ALL_PRODUCTS.find(x => x.id === id);
+      return p ? p.name : id;
+    }
+
+    function renderFloorPills(productId, label, options, key, limit2) {
+      const selected = productOptions[productId][key] || [];
+      const limit = limit2 && selected.length >= 2;
+      return `
+        <div class="option-group">
+          <label>${label} ${limit2 ? '<span class="hint">最多选2项</span>' : '<span class="hint">可多选</span>'}</label>
+          <div class="option-pills">
+            ${options.map(v => {
+              const isSel = selected.includes(v);
+              const disabled = limit && !isSel;
+              return `<span class="pill ${isSel ? 'selected' : ''} ${disabled ? 'disabled' : ''}"
+                onclick="${disabled ? '' : `toggleOption('${productId}', '${key}', ${v}, ${limit2})`}">${v}层</span>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }
+
+    function renderAreaPills(productId, label, options, key, single) {
+      const selected = productOptions[productId][key] || [];
+      return `
+        <div class="option-group">
+          <label>${label} ${single ? '<span class="hint">单选</span>' : '<span class="hint">可多选</span>'}</label>
+          <div class="option-pills">
+            ${options.map(v => {
+              const isSel = selected.includes(v);
+              return `<span class="pill ${isSel ? 'selected' : ''}"
+                onclick="toggleOption('${productId}', '${key}', ${v}, ${single || false})">${v}m²</span>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }
+
+    function toggleOption(productId, key, value, single) {
+      const opts = productOptions[productId];
+      if (!opts[key]) opts[key] = [];
+      const arr = opts[key];
+      const idx = arr.indexOf(value);
+
+      if (single) {
+        opts[key] = idx >= 0 ? [] : [value];
+      } else {
+        if (idx >= 0) arr.splice(idx, 1);
+        else arr.push(value);
+      }
+      renderSubOptions();
+    }
+
+    // ==================== 生成配置 ====================
+    function generateConfig() {
+      // 校验
+      const msg = document.getElementById('product-validation-msg');
+      const ancillaryRatio = projectData.ancillaryRatio;
+      const hasDormOrSupport = selectedProducts.has('dorm') || selectedProducts.has('support');
+
+      if (ancillaryRatio > 0 && !hasDormOrSupport) {
+        msg.textContent = '⚠️ 配套用房占比大于0，必须选择配套宿舍或配套楼（或两者）';
+        msg.style.display = 'block'; return;
+      }
+
+      const isShanghaiC65 = projectData.region === '上海' && projectData.landUseType === 'C65';
+      const rdRatio = projectData.rdRatio;
+      if (isShanghaiC65 && rdRatio > 0 && projectData.far <= 2.0) {
+        // 提示但不阻止
+      }
+      if (isShanghaiC65 && rdRatio > 0 && projectData.far > 2.0 && !selectedProducts.has('tower')) {
+        msg.textContent = '⚠️ 研发办公用房未选择：产业大厦为必选项';
+        msg.style.display = 'block'; return;
+      }
+
+      // 校验每个产品是否选了必要参数
+      for (const id of selectedProducts) {
+        const opts = productOptions[id];
+        if ((id === 'light-steel' || id === 'split' || id === 'layer' || id === 'tower' || id === 'support') &&
+            (!opts.areas || opts.areas.length === 0)) {
+          msg.textContent = `⚠️ 请为「${getProductName(id)}」选择面积段`;
+          msg.style.display = 'block'; return;
+        }
+        if ((id === 'split' || id === 'layer') && (!opts.floors || opts.floors.length === 0)) {
+          msg.textContent = `⚠️ 请为「${getProductName(id)}」选择层数`;
+          msg.style.display = 'block'; return;
         }
       }
-    })();
+
+      msg.style.display = 'none';
+
+      // 执行配置计算（简化版 — 实际应走完整算法）
+      const result = calculateProductConfig();
+      window.configResult = result;
+
+      // 切换视图
+      document.getElementById('view-input').classList.remove('active');
+      document.getElementById('view-dashboard').classList.add('active');
+      updateSidebarActive('dashboard');
+
+      // 渲染数字卡片
+      renderStatCards(result);
+      // 渲染各视图内容
+      renderConfigOverview(result);
+      renderCharts(result);
+      renderIndicatorOverview(result);
+    }
+
+    // ==================== 简化配置计算（占位） ====================
+    function calculateProductConfig() {
+      // 这里应该是完整的配置算法
+      // 为了演示UI，先用模拟数据
+      const products = [];
+      let totalBase = 0, totalArea = 0, totalCap = 0, totalCount = 0;
+
+      selectedProducts.forEach(id => {
+        const opts = productOptions[id];
+        if (id === 'light-steel') {
+          opts.areas.forEach(area => {
+            const count = 2;
+            const base = area;
+            const unitArea = area + 400;
+            const unitCap = (area - 200) * 2 + 600;
+            products.push({
+              type: '轻钢厂房', productType: `1F-D(${area})`, form: '独栋',
+              load: '首层2000kg', floors: 1, elevator: '无',
+              fl: { first: 12, second: 4.8, standard: 3.6, top: 3.6 },
+              flSuffix: { second: '（夹）', standard: '（夹）', top: '（夹）' },
+              totalHeight: 13.2, base, unitArea, unitCap,
+              count, totalBase: base * count, totalArea: unitArea * count, totalCap: unitCap * count
+            });
+            totalBase += base * count; totalArea += unitArea * count;
+            totalCap += unitCap * count; totalCount += count;
+          });
+        } else if (id === 'split') {
+          opts.floors.forEach(floor => {
+            opts.areas.forEach(area => {
+              const count = 2;
+              const base = area;
+              const unitArea = area * floor;
+              const unitCap = area * floor;
+              products.push({
+                type: '分栋厂房', productType: `${floor}F-D(${area})`, form: '独栋',
+                load: '首层2000kg，二层800kg，二层及以上500kg',
+                floors: floor, elevator: area < 1500 ? '0客1货' : (area < 4000 ? '1客1货' : '1客2货'),
+                fl: { first: 7.2, second: 5.1, standard: 4.5, top: 4.5 },
+                totalHeight: 7.2 + 5.1 + 4.5 * (floor - 2) + 4.5,
+                base, unitArea, unitCap, count,
+                totalBase: base * count, totalArea: unitArea * count, totalCap: unitCap * count
+              });
+              totalBase += base * count; totalArea += unitArea * count;
+              totalCap += unitCap * count; totalCount += count;
+            });
+          });
+        }
+        // 其他产品类型类似处理...
+      });
+
+      return { products, totalBase, totalArea, totalCap, totalCount };
+    }
+
+    // ==================== 数字卡片 ====================
+    function renderStatCards(result) {
+      const types = new Set(result.products.map(p => p.type)).size;
+      const acre = projectData.landArea / 666.7;
+      document.getElementById('stat-cards').innerHTML = `
+        <div class="stat-card"><div class="label">厂房类型</div><div class="value">${types}</div><div class="unit">种</div></div>
+        <div class="stat-card"><div class="label">总建筑面积</div><div class="value">${fmtInt(result.totalArea)}</div><div class="unit">m²</div></div>
+        <div class="stat-card"><div class="label">总计容面积</div><div class="value">${fmtInt(result.totalCap)}</div><div class="unit">m²</div></div>
+        <div class="stat-card"><div class="label">总栋数</div><div class="value">${result.totalCount}</div><div class="unit">栋</div></div>
+        <div class="stat-card"><div class="label">用地面积</div><div class="value">${fmtNum(projectData.landArea / 666.7, 1)}</div><div class="unit">亩</div></div>
+      `;
+    }
+
+    // ==================== 产品配置一览（简化8字段） ====================
+    function renderConfigOverview(result) {
+      const tbody = result.products.map(p => `
+        <tr>
+          <td>${p.type}</td>
+          <td>${p.productType}</td>
+          <td>${p.form}</td>
+          <td class="num">${fmtNum(p.totalHeight, 1)}m</td>
+          <td class="num">${fmtInt(p.unitArea)}</td>
+          <td class="num">${p.count}</td>
+          <td class="num">${fmtInt(p.totalArea)}</td>
+          <td class="num">${fmtInt(p.totalCap)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('config-overview-content').innerHTML = `
+        <div class="card">
+          <table class="data-table">
+            <thead><tr>
+              <th>厂房类型</th><th>产品类型</th><th>形式</th><th>总层高</th>
+              <th>单栋面积</th><th>栋数</th><th>户型总面积</th><th>户型总计容面积</th>
+            </tr></thead>
+            <tbody>${tbody}</tbody>
+          </table>
+        </div>`;
+    }
+
+    // ==================== 图表渲染 ====================
+    function renderCharts(result) {
+      // 业态分布（简化的饼图用色块表示）
+      const typeMap = {};
+      result.products.forEach(p => {
+        if (!typeMap[p.type]) typeMap[p.type] = 0;
+        typeMap[p.type] += p.totalCap;
+      });
+      const colors = ['#0B2B5C', '#1E4E8C', '#3B8DD8', '#60A5FA', '#93C5FD', '#BFDBFE'];
+      const totalCap = result.totalCap;
+      let pieHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">';
+      let i = 0;
+      for (const [type, cap] of Object.entries(typeMap)) {
+        const pct = (cap / totalCap * 100).toFixed(1);
+        pieHtml += `<div style="display:flex;align-items:center;gap:6px;font-size:0.8rem;">
+          <span style="width:12px;height:12px;border-radius:3px;background:${colors[i % colors.length]};"></span>
+          ${type} ${pct}%
+        </div>`;
+        i++;
+      }
+      pieHtml += '</div>';
+      pieHtml += '<div style="display:flex;height:32px;border-radius:8px;overflow:hidden;">';
+      i = 0;
+      for (const [type, cap] of Object.entries(typeMap)) {
+        const pct = (cap / totalCap * 100);
+        pieHtml += `<div style="width:${pct}%;background:${colors[i % colors.length]};" title="${type} ${pct.toFixed(1)}%"></div>`;
+        i++;
+      }
+      pieHtml += '</div>';
+      document.getElementById('chart-type-content').innerHTML = `<div class="card">${pieHtml}</div>`;
+
+      // 配置数量（柱状图用div模拟）
+      const countMap = {};
+      result.products.forEach(p => {
+        if (!countMap[p.type]) countMap[p.type] = 0;
+        countMap[p.type] += p.count;
+      });
+      const maxCount = Math.max(...Object.values(countMap));
+      let barHtml = '<div class="card">';
+      for (const [type, count] of Object.entries(countMap)) {
+        const pct = (count / maxCount * 100);
+        barHtml += `
+          <div style="display:flex;align-items:center;margin-bottom:10px;gap:10px;">
+            <div style="width:80px;font-size:0.8rem;text-align:right;flex-shrink:0;">${type}</div>
+            <div style="flex:1;background:var(--neutral-100);border-radius:4px;height:28px;overflow:hidden;">
+              <div style="width:${pct}%;background:var(--brand-gradient);height:100%;border-radius:4px;display:flex;align-items:center;padding-left:10px;">
+                <span style="color:#fff;font-size:0.75rem;font-weight:600;">${count}栋</span>
+              </div>
+            </div>
+          </div>`;
+      }
+      barHtml += '</div>';
+      document.getElementById('chart-count-content').innerHTML = barHtml;
+
+      // 其他图表占位
+      ['chart-area', 'chart-load', 'chart-height', 'chart-elevator', 'chart-layout'].forEach(id => {
+        document.getElementById(id + '-content').innerHTML = `
+          <div class="card"><div class="chart-placeholder">
+            <div class="icon">📊</div>
+            <div>图表数据计算中...</div>
+          </div></div>`;
+      });
+    }
+
+    // ==================== 综合指标一览 ====================
+    function renderIndicatorOverview(result) {
+      const acre = projectData.landArea / 666.7;
+      const calc = projectData.calculated;
+      document.getElementById('indicator-overview-content').innerHTML = `
+        <div class="card">
+          <table class="data-table">
+            <tbody>
+              <tr><td>规划用地面积</td><td class="num">${fmtNum(projectData.landArea, 1)}</td><td class="unit">m²</td><td>约${fmtNum(acre, 1)}亩</td></tr>
+              <tr><td>总建筑面积</td><td class="num">${fmtNum(result.totalArea + calc.undergroundArea, 1)}</td><td class="unit">m²</td><td>—</td></tr>
+              <tr><td style="padding-left:32px;">地上建筑面积</td><td class="num">${fmtNum(result.totalArea, 1)}</td><td class="unit">m²</td><td>—</td></tr>
+              <tr><td style="padding-left:32px;">地下建筑面积</td><td class="num">${fmtNum(calc.undergroundArea, 1)}</td><td class="unit">m²</td><td>含地下车库与设备用房</td></tr>
+              <tr><td><strong>计容总建筑面积</strong></td><td class="num"><strong>${fmtNum(result.totalCap, 1)}</strong></td><td class="unit">m²</td><td>—</td></tr>
+              <tr><td>容积率</td><td class="num">${fmtNum(projectData.far, 2)}</td><td class="unit">—</td><td>—</td></tr>
+              <tr><td>绿地率</td><td class="num">${(projectData.greenRate * 100).toFixed(2)}%</td><td class="unit">—</td><td>—</td></tr>
+              <tr><td>建筑密度</td><td class="num">${(calc.buildingDensity * 100).toFixed(0)}%</td><td class="unit">—</td><td>—</td></tr>
+              <tr style="background:var(--neutral-100);"><td>机动车停车位数量</td><td class="num">${fmtInt(calc.totalVehicle)}</td><td class="unit">辆</td><td>—</td></tr>
+              <tr><td style="padding-left:32px;">地面机动车停车位</td><td class="num">${fmtInt(calc.groundVehicle)}</td><td class="unit">辆</td><td>—</td></tr>
+              <tr><td style="padding-left:32px;">地下机动车停车位</td><td class="num">${fmtInt(calc.undergroundVehicle)}</td><td class="unit">辆</td><td>—</td></tr>
+              <tr style="background:var(--neutral-100);"><td>非机动车停车位数量</td><td class="num">${fmtInt(calc.totalNonVehicle)}</td><td class="unit">辆</td><td>—</td></tr>
+              <tr><td style="padding-left:32px;">地面非机动车停车位</td><td class="num">${fmtInt(calc.groundNonVehicle)}</td><td class="unit">辆</td><td>—</td></tr>
+              <tr><td style="padding-left:32px;">地下非机动车停车位</td><td class="num">${fmtInt(calc.undergroundNonVehicle)}</td><td class="unit">辆</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    // ==================== 视图切换 ====================
+    function switchView(viewId) {
+      if (viewId === 'input') {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-input').classList.add('active');
+      } else if (!window.configResult) {
+        alert('请先生成产品配置'); return;
+      } else {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+      }
+      updateSidebarActive(viewId);
+    }
+
+    function updateSidebarActive(viewId) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const el = document.querySelector(`.nav-item[data-view="${viewId}"]`);
+      if (el) el.classList.add('active');
+    }
+
+    // ==================== 下载占位 ====================
+    function downloadConfigDetail() {
+      if (!window.configResult) { alert('请先生成产品配置'); return; }
+      alert('产品配置详表下载功能开发中...');
+    }
+    function downloadIndicatorDetail() {
+      if (!window.configResult) { alert('请先生成产品配置'); return; }
+      alert('总体经济技术指标表下载功能开发中...');
+    }
+
+    // ==================== 格式化工具 ====================
+    function fmtNum(n, d) { return Number(n).toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+    function fmtInt(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
   </script>
 </body>
 </html>
