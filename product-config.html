@@ -1449,12 +1449,21 @@
 
     function toggleConfigSummary(e) {
       if (e) e.stopPropagation();
+      // 如果刚发生了拖动，不触发折叠/展开
+      if (window._justDragged) {
+        window._justDragged = false;
+        return;
+      }
       const card = document.getElementById('config-summary');
       card.classList.toggle('open');
     }
 
     function backToInput(e) {
       if (e) e.stopPropagation();
+      if (window._justDragged) {
+        window._justDragged = false;
+        return;
+      }
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.getElementById('view-input').classList.add('active');
       document.getElementById('config-summary').classList.remove('open');
@@ -1612,15 +1621,10 @@
     (function initDraggable() {
       const card = document.getElementById('config-summary');
       if (!card) return;
-      let isDragging = false, startX, startY, origLeft, origTop;
-      
-      card.addEventListener('mousedown', function(e) {
-        // 不响应按钮点击的拖动
-        if (e.target.closest('.fold-btn') || e.target.closest('.reconfig-btn')) return;
-        if (!card.classList.contains('open')) return; // 折叠时不拖动
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
+      let isDown = false, isDrag = false, startX, startY, origLeft, origTop;
+      const THRESHOLD = 5; // 像素阈值，超过则判定为拖动
+
+      function startDrag(clientX, clientY) {
         const rect = card.getBoundingClientRect();
         origLeft = rect.left;
         origTop = rect.top;
@@ -1630,53 +1634,78 @@
         card.style.margin = '0';
         card.style.zIndex = '1000';
         card.style.cursor = 'grabbing';
-        e.preventDefault();
-      });
-      
-      document.addEventListener('mousemove', function(e) {
-        if (!isDragging) return;
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
+      }
+
+      function moveDrag(clientX, clientY) {
+        const dx = clientX - startX;
+        const dy = clientY - startY;
         card.style.left = (origLeft + dx) + 'px';
         card.style.top = (origTop + dy) + 'px';
-      });
-      
-      document.addEventListener('mouseup', function() {
-        if (!isDragging) return;
-        isDragging = false;
+      }
+
+      function endDrag() {
+        if (isDrag) {
+          window._justDragged = true;
+          setTimeout(() => { window._justDragged = false; }, 100);
+        }
+        isDown = false;
+        isDrag = false;
         card.style.cursor = 'default';
+      }
+
+      card.addEventListener('mousedown', function(e) {
+        if (e.target.closest('.fold-btn') || e.target.closest('.reconfig-btn')) return;
+        isDown = true;
+        isDrag = false;
+        startX = e.clientX;
+        startY = e.clientY;
       });
-      
+
+      document.addEventListener('mousemove', function(e) {
+        if (!isDown) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if (!isDrag && (Math.abs(dx) > THRESHOLD || Math.abs(dy) > THRESHOLD)) {
+          isDrag = true;
+          startDrag(startX, startY);
+        }
+        if (isDrag) {
+          moveDrag(e.clientX, e.clientY);
+          e.preventDefault();
+        }
+      });
+
+      document.addEventListener('mouseup', function() {
+        endDrag();
+      });
+
       // 触摸支持
       card.addEventListener('touchstart', function(e) {
         if (e.target.closest('.fold-btn') || e.target.closest('.reconfig-btn')) return;
-        if (!card.classList.contains('open')) return;
-        isDragging = true;
+        isDown = true;
+        isDrag = false;
         const touch = e.touches[0];
         startX = touch.clientX;
         startY = touch.clientY;
-        const rect = card.getBoundingClientRect();
-        origLeft = rect.left;
-        origTop = rect.top;
-        card.style.position = 'fixed';
-        card.style.left = origLeft + 'px';
-        card.style.top = origTop + 'px';
-        card.style.margin = '0';
-        card.style.zIndex = '1000';
-      }, { passive: false });
-      
+      }, { passive: true });
+
       document.addEventListener('touchmove', function(e) {
-        if (!isDragging) return;
+        if (!isDown) return;
         const touch = e.touches[0];
         const dx = touch.clientX - startX;
         const dy = touch.clientY - startY;
-        card.style.left = (origLeft + dx) + 'px';
-        card.style.top = (origTop + dy) + 'px';
-        e.preventDefault();
+        if (!isDrag && (Math.abs(dx) > THRESHOLD || Math.abs(dy) > THRESHOLD)) {
+          isDrag = true;
+          startDrag(startX, startY);
+        }
+        if (isDrag) {
+          moveDrag(touch.clientX, touch.clientY);
+          e.preventDefault();
+        }
       }, { passive: false });
-      
+
       document.addEventListener('touchend', function() {
-        isDragging = false;
+        endDrag();
       });
     })();
 
