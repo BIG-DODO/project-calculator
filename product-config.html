@@ -1513,21 +1513,60 @@
         return diffA - diffB;
       });
       
-      // 5. 先分配最小栋数（2栋）
+      // 5. 计算需要分配的总栋数（基于密度和计容双控）
+      // 策略：先满足密度，再调整计容
+      // 按目标平均层数排序，优先分配接近目标层数的配置
+      const targetAvgFloor = remainingCap / remainingBase;
+      
+      // 按 unitCap/base 与目标平均层数的差距排序
+      variableConfigs.sort((a, b) => {
+        const effA = a.unitCap / a.base;
+        const effB = b.unitCap / b.base;
+        return Math.abs(effA - targetAvgFloor) - Math.abs(effB - targetAvgFloor);
+      });
+      
+      // 先给每种配置分配最小栋数2
       const counts = variableConfigs.map(() => 2);
       let currentBase = variableConfigs.reduce((sum, c, i) => sum + c.base * counts[i], 0);
       let currentCap = variableConfigs.reduce((sum, c, i) => sum + c.unitCap * counts[i], 0);
       
-      // 6. 密度调整
+      // 6. 密度优先：大幅增加栋数直到接近目标密度
       if (currentBase < remainingBase) {
-        // 密度不够，增加最优先配置的栋数
+        // 循环增加，每次增加对密度缺口贡献最大的配置
         while (currentBase < remainingBase * 0.95) {
-          counts[0]++;
-          currentBase += variableConfigs[0].base;
-          currentCap += variableConfigs[0].unitCap;
+          const baseGap = remainingBase - currentBase;
+          let bestIdx = -1, bestScore = -Infinity;
+          
+          variableConfigs.forEach((c, i) => {
+            // 评分：每增加1栋，密度贡献 / 密度缺口
+            const baseContribution = c.base;
+            const capContribution = c.unitCap;
+            const densityImprovement = baseContribution / baseGap;
+            
+            // 同时考虑计容效率，避免计容超太多
+            const capGap = remainingCap - currentCap;
+            const capRatio = capContribution / (capGap || 1);
+            
+            // 综合评分：密度改善 + 计容效率接近目标
+            const eff = c.unitCap / c.base;
+            const effDiff = Math.abs(eff - targetAvgFloor);
+            const score = densityImprovement * 100 - effDiff * 10;
+            
+            if (score > bestScore) {
+              bestScore = score;
+              bestIdx = i;
+            }
+          });
+          
+          if (bestIdx === -1) break;
+          counts[bestIdx]++;
+          currentBase += variableConfigs[bestIdx].base;
+          currentCap += variableConfigs[bestIdx].unitCap;
         }
-      } else if (currentBase > remainingBase) {
-        // 密度超了，减少密度大的配置
+      }
+      
+      // 7. 密度超了：减少密度型配置（但最少2栋）
+      if (currentBase > remainingBase) {
         while (currentBase > remainingBase * 1.05) {
           let maxIdx = -1, maxBase = 0;
           variableConfigs.forEach((c, i) => {
@@ -1543,40 +1582,75 @@
         }
       }
       
-      // 7. 计容调整
-      if (currentCap < remainingCap) {
+      // 8. 计容调整：确保计容在误差范围内
+      if (currentCap < remainingCap * 0.9995) {
         // 计容不够，增加计容效率高的配置
         while (currentCap < remainingCap * 0.9995) {
-          let maxIdx = -1, maxEff = 0;
+          let bestIdx = -1, bestEff = 0;
           variableConfigs.forEach((c, i) => {
             const eff = c.unitCap / c.base;
-            if (eff > maxEff) {
-              maxEff = eff;
+            if (eff > bestEff) {
+              bestEff = eff;
+              bestIdx = i;
+            }
+          });
+          if (bestIdx === -1) break;
+          counts[bestIdx]++;
+          currentCap += variableConfigs[bestIdx].unitCap;
+          currentBase += variableConfigs[bestIdx].base;
+        }
+      } else if (currentCap > remainingCap * 1.0005) {
+        // 计容超了，减少计容效率高的配置（但最少2栋）
+        while (currentCap > remainingCap * 1.0005) {
+          let bestIdx = -1, bestEff = 0;
+          variableConfigs.forEach((c, i) => {
+            if (counts[i] > 2) {
+              const eff = c.unitCap / c.base;
+              if (eff > bestEff) {
+                bestEff = eff;
+                bestIdx = i;
+              }
+            }
+          });
+          if (bestIdx === -1) break;
+          counts[bestIdx]--;
+          currentCap -= variableConfigs[bestIdx].unitCap;
+          currentBase -= variableConfigs[bestIdx].base;
+        }
+      }
+      
+      // 9. 最终密度检查：如果密度还超，再调整
+      if (currentBase > remainingBase * 1.05) {
+        while (currentBase > remainingBase * 1.05) {
+          let maxIdx = -1, maxBase = 0;
+          variableConfigs.forEach((c, i) => {
+            if (counts[i] > 2 && c.base > maxBase) {
+              maxBase = c.base;
               maxIdx = i;
             }
           });
           if (maxIdx === -1) break;
-          counts[maxIdx]++;
-          currentCap += variableConfigs[maxIdx].unitCap;
-          currentBase += variableConfigs[maxIdx].base;
+          counts[maxIdx]--;
+          currentBase -= variableConfigs[maxIdx].base;
+          currentCap -= variableConfigs[maxIdx].unitCap;
         }
-      } else if (currentCap > remainingCap) {
-        // 计容超了，减少计容效率高的配置
-        while (currentCap > remainingCap * 1.0005) {
-          let maxIdx = -1, maxEff = 0;
+      }
+      
+      // 10. 最终计容检查
+      if (currentCap < remainingCap * 0.9995) {
+        while (currentCap < remainingCap * 0.9995) {
+          let bestIdx = -1, bestEff = 0;
           variableConfigs.forEach((c, i) => {
-            if (counts[i] > 2) {
-              const eff = c.unitCap / c.base;
-              if (eff > maxEff) {
-                maxEff = eff;
-                maxIdx = i;
-              }
+            const eff = c.unitCap / c.base;
+            if (eff > bestEff) {
+              bestEff = eff;
+              bestIdx = i;
             }
           });
-          if (maxIdx === -1) break;
-          counts[maxIdx]--;
-          currentCap -= variableConfigs[maxIdx].unitCap;
-          currentBase -= variableConfigs[maxIdx].base;
+          if (bestIdx === -1) break;
+          counts[bestIdx]++;
+          currentCap += variableConfigs[bestIdx].unitCap;
+          currentBase += variableConfigs[bestIdx].base;
         }
       }
       
