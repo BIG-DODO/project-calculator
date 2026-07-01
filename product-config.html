@@ -467,9 +467,12 @@
     .accordion-item.open .accordion-body { display: block; }
 
     /* ---------- 表格横向滚动 ---------- */
+    .card { overflow: hidden; }
     .table-scroll {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+      position: relative;
+      width: 100%;
     }
     .table-scroll .data-table {
       min-width: 640px;
@@ -478,6 +481,30 @@
       position: sticky;
       top: 0;
       z-index: 2;
+    }
+    /* 右侧渐变遮罩提示 */
+    .table-scroll::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 40px;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.95));
+      pointer-events: none;
+      z-index: 3;
+    }
+    /* 移动端隐藏遮罩当滚动到最右时（JS动态控制） */
+    .table-scroll.scrolled-right::after { opacity: 0; }
+    .table-scroll-hint {
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--neutral-400);
+      padding: 6px 0 0;
+      display: none;
+    }
+    @media (max-width: 640px) {
+      .table-scroll-hint { display: block; }
     }
     .type-filter {
       display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
@@ -1127,7 +1154,7 @@
 
       document.getElementById('config-overview-content').innerHTML = `
         <div class="card">
-          <div class="table-scroll">
+          <div class="table-scroll" onscroll="checkScroll(this)">
             <table class="data-table">
               <thead><tr>
                 <th>厂房类型</th><th>产品类型</th><th>形式</th><th>总层高</th>
@@ -1136,6 +1163,7 @@
               <tbody>${tbody}</tbody>
             </table>
           </div>
+          <div class="table-scroll-hint">👈 左右滑动查看更多 👉</div>
         </div>`;
     }
 
@@ -1209,7 +1237,7 @@
       const calc = projectData.calculated;
       document.getElementById('indicator-overview-content').innerHTML = `
         <div class="card">
-          <div class="table-scroll">
+          <div class="table-scroll" onscroll="checkScroll(this)">
             <table class="data-table">
               <tbody>
                 <tr><td>规划用地面积</td><td class="num">${fmtNum(projectData.landArea, 1)}</td><td class="unit">m²</td><td>约${fmtNum(acre, 1)}亩</td></tr>
@@ -1229,6 +1257,7 @@
             </tbody>
           </table>
           </div>
+          <div class="table-scroll-hint">👈 左右滑动查看更多 👉</div>
         </div>`;
     }
 
@@ -1265,6 +1294,16 @@
     // ==================== 格式化工具 ====================
     function fmtNum(n, d) { return Number(n).toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
     function fmtInt(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+    // 检测表格滚动位置，到达最右时隐藏遮罩
+    function checkScroll(el) {
+      const isAtRight = el.scrollLeft + el.clientWidth >= el.scrollWidth - 5;
+      if (isAtRight) {
+        el.classList.add('scrolled-right');
+      } else {
+        el.classList.remove('scrolled-right');
+      }
+    }
   </script>
 </body>
 </html>
