@@ -271,7 +271,7 @@
       text-align: left;
     }
     .product-chip.selected .mobile-options {
-      display: block;
+      display: none; /* 默认隐藏，只在手机端显示 */
     }
     .product-chip .mobile-options .option-group {
       margin-bottom: 10px;
@@ -502,6 +502,8 @@
       }
       .product-chip .chip-desktop { display: none; }
       .product-chip .chip-mobile { display: block; }
+      /* 手机端选中产品显示内联配置 */
+      .product-chip.selected .mobile-options { display: block; }
       /* 手机端隐藏右侧独立的 Step2 折叠面板 */
       #sub-options-card { display: none !important; }
     }
