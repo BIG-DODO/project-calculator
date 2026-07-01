@@ -506,7 +506,21 @@
     @media (max-width: 640px) {
       .table-scroll-hint { display: block; }
     }
-    .type-filter {
+    /* ---------- 指标表（无遮罩，自适应列宽） ---------- */
+    .indicator-table-wrap {
+      width: 100%;
+    }
+    .indicator-table {
+      width: 100%;
+    }
+    .indicator-table td:first-child {
+      white-space: nowrap;
+    }
+    .indicator-table td.num,
+    .indicator-table td.unit {
+      white-space: nowrap;
+      width: 1%;
+    }
       display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
     }
     .type-filter .pill { padding: 6px 14px; font-size: 0.8rem; }
@@ -1273,8 +1287,8 @@
       const calc = projectData.calculated;
       document.getElementById('indicator-overview-content').innerHTML = `
         <div class="card">
-          <div class="table-scroll" onscroll="checkScroll(this)">
-            <table class="data-table">
+          <div class="indicator-table-wrap">
+            <table class="data-table indicator-table">
               <tbody>
                 <tr><td>规划用地面积</td><td class="num">${fmtNum(projectData.landArea, 1)}</td><td class="unit">m²</td><td>约${fmtNum(acre, 1)}亩</td></tr>
               <tr><td>总建筑面积</td><td class="num">${fmtNum(result.totalArea + calc.undergroundArea, 1)}</td><td class="unit">m²</td><td>—</td></tr>
@@ -1293,7 +1307,6 @@
             </tbody>
           </table>
           </div>
-          <div class="table-scroll-hint">👈 左右滑动查看更多 👉</div>
         </div>`;
     }
 
