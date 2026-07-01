@@ -500,7 +500,12 @@
           </div>
         </div>
 
-        <button class="btn btn-primary" onclick="calculate()">生成指标估算表</button>
+        <div style="display:flex;gap:10px;margin-bottom:12px;">
+          <button class="btn btn-primary" onclick="calculate()" style="flex:1;">生成指标估算表</button>
+        </div>
+        <button class="btn btn-secondary" onclick="fillExampleData()" style="width:100%;font-size:0.85rem;padding:10px;">
+          ⚡ 一键录入示例基础参数
+        </button>
       </div>
     </div>
 
@@ -696,11 +701,23 @@
       const availableParkingArea = landArea - roadArea - greenArea - buildingBaseArea - groundNonVehicleArea;
       let groundVehicle = Math.floor(availableParkingArea / 35);
       if (groundVehicle < 10) groundVehicle = 0;
-      const undergroundVehicle = totalVehicle - groundVehicle;
 
-      const undergroundArea = isHangzhou(region)
-        ? undergroundVehicle * 42 + undergroundNonVehicle * 1.5
-        : undergroundVehicle * 35 + undergroundNonVehicle * 1.5;
+      let undergroundVehicle = 0;
+      let undergroundArea = 0;
+      let undergroundRemark = '含地下车库与设备用房';
+
+      if (groundVehicle >= totalVehicle) {
+        // 地面停车位足够，不需要地下
+        groundVehicle = totalVehicle;
+        undergroundVehicle = 0;
+        undergroundArea = 500;
+        undergroundRemark = '设备用房';
+      } else {
+        undergroundVehicle = totalVehicle - groundVehicle;
+        undergroundArea = isHangzhou(region)
+          ? undergroundVehicle * 42 + undergroundNonVehicle * 1.5
+          : undergroundVehicle * 35 + undergroundNonVehicle * 1.5;
+      }
       const totalArea = aboveGroundArea + undergroundArea;
       const acre = landArea / 666.7;
 
@@ -776,7 +793,7 @@
         <td>地下建筑面积</td>
         <td class="num">${fmtNum(undergroundArea, 1)}</td>
         <td class="unit">m²</td>
-        <td class="remark">含地下车库与设备用房</td>
+        <td class="remark">${undergroundRemark}</td>
       </tr>`;
 
       // 规划指标组
@@ -1014,6 +1031,26 @@
       const data = sessionStorage.getItem('projectCalculatorData');
       if (!data) { showToast('请先生成指标估算表'); return; }
       window.location.href = 'product-config.html';
+    }
+
+    // ---------- 一键录入示例基础参数 ----------
+    function fillExampleData() {
+      document.getElementById('input-name').value = '上海智能智造中心';
+      document.getElementById('input-region').value = '上海';
+      document.getElementById('input-land-use').value = 'C65';
+      document.getElementById('input-land').value = '50000';
+      document.getElementById('input-far').value = '3.0';
+      document.getElementById('input-height-limit').value = '60';
+      document.getElementById('input-green').value = '20';
+      document.getElementById('input-rd-ratio').value = '15';
+      document.getElementById('input-ancillary').value = '15';
+      document.getElementById('input-factory').value = '0.5';
+      document.getElementById('input-support').value = '1.0';
+
+      // 触发条件字段显隐
+      updateConditionalFields();
+
+      showToast('示例参数已录入');
     }
 
     function showToast(msg) {
