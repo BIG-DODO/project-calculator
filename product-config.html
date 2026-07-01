@@ -533,11 +533,48 @@
     }
     @media (max-width: 640px) {
       .main-layout { flex-direction: column; height: auto; overflow: visible; }
-      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--neutral-200); padding: 12px 0; height: auto; overflow-x: auto; overflow-y: hidden; white-space: nowrap; }
-      .nav-group { display: inline-block; vertical-align: top; margin-right: 16px; }
-      .nav-group-title { display: none; }
-      .nav-item { display: inline-flex; padding: 8px 14px; border-left: none; border-radius: 20px; white-space: nowrap; }
-      .nav-item.active { border-left: none; background: var(--brand-light); }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--neutral-200); padding: 8px 0; height: auto; overflow: visible; white-space: normal; }
+      .nav-group { display: block; margin: 0; border-bottom: 1px solid var(--neutral-100); }
+      .nav-group:last-child { border-bottom: none; }
+      .nav-group-title {
+        display: block;
+        padding: 10px 16px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--neutral-600);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .nav-group-title::after {
+        content: '▼';
+        font-size: 0.65rem;
+        color: var(--neutral-400);
+        transition: transform 0.2s;
+      }
+      .nav-group.open .nav-group-title::after {
+        transform: rotate(180deg);
+      }
+      .nav-group .nav-items {
+        display: none;
+        padding: 0 12px 8px;
+      }
+      .nav-group.open .nav-items {
+        display: block;
+      }
+      .nav-item {
+        display: flex;
+        padding: 8px 12px;
+        border-left: 3px solid transparent;
+        border-radius: 0;
+        white-space: nowrap;
+        font-size: 0.85rem;
+      }
+      .nav-item.active {
+        border-left-color: var(--brand-accent);
+        background: var(--brand-light);
+      }
       .content { padding: 16px; height: auto; overflow: visible; }
       /* 配置输入左右分栏 → 上下堆叠 */
       .config-layout { flex-direction: column; }
@@ -581,73 +618,85 @@
   <div class="main-layout">
     <!-- 左侧导航 -->
     <nav class="sidebar" id="sidebar">
-      <div class="nav-group">
-        <div class="nav-group-title">导航</div>
-        <a href="index.html" class="nav-item" style="text-decoration:none;color:inherit;">
-          <span class="icon">←</span> 返回基础参数录入
-        </a>
-      </div>
-      <div class="nav-group">
-        <div class="nav-group-title">配置向导</div>
-        <div class="nav-item active" data-view="input" onclick="switchView('input')">
-          <span class="icon">⚙️</span> 配置输入
+      <div class="nav-group open">
+        <div class="nav-group-title" onclick="toggleNavGroup(this)">导航</div>
+        <div class="nav-items">
+          <a href="index.html" class="nav-item" style="text-decoration:none;color:inherit;">
+            <span class="icon">←</span> 返回基础参数录入
+          </a>
         </div>
       </div>
-      <div class="nav-group">
-        <div class="nav-group-title">产品配置</div>
-        <div class="nav-item" data-view="config-overview" onclick="switchView('config-overview')">
-          <span class="icon">📋</span> 产品配置一览
-        </div>
-        <div class="nav-item" onclick="downloadConfigDetail()">
-          <span class="icon">⬇️</span> 产品配置详表下载
+      <div class="nav-group open">
+        <div class="nav-group-title" onclick="toggleNavGroup(this)">配置向导</div>
+        <div class="nav-items">
+          <div class="nav-item active" data-view="input" onclick="switchView('input')">
+            <span class="icon">⚙️</span> 配置输入
+          </div>
         </div>
       </div>
       <div class="nav-group">
-        <div class="nav-group-title">产品分析</div>
-        <div class="nav-item" data-view="chart-type" onclick="switchView('chart-type')">
-          <span class="icon">🥧</span> 产品业态分布
-        </div>
-        <div class="nav-item" data-view="chart-count" onclick="switchView('chart-count')">
-          <span class="icon">📊</span> 产品配置数量
-        </div>
-        <div class="nav-item" data-view="chart-area" onclick="switchView('chart-area')">
-          <span class="icon">📐</span> 产品面积段分布
-        </div>
-        <div class="nav-item" data-view="chart-load" onclick="switchView('chart-load')">
-          <span class="icon">🏋️</span> 产品荷载分布
-        </div>
-        <div class="nav-item" data-view="chart-height" onclick="switchView('chart-height')">
-          <span class="icon">🏢</span> 层高与层数分布
-        </div>
-        <div class="nav-item" data-view="chart-elevator" onclick="switchView('chart-elevator')">
-          <span class="icon">🛗</span> 产品电梯配置
-        </div>
-        <div class="nav-item" data-view="chart-layout" onclick="switchView('chart-layout')">
-          <span class="icon">🏠</span> 产品户型建议
+        <div class="nav-group-title" onclick="toggleNavGroup(this)">产品配置</div>
+        <div class="nav-items">
+          <div class="nav-item" data-view="config-overview" onclick="switchView('config-overview')">
+            <span class="icon">📋</span> 产品配置一览
+          </div>
+          <div class="nav-item" onclick="downloadConfigDetail()">
+            <span class="icon">⬇️</span> 产品配置详表下载
+          </div>
         </div>
       </div>
       <div class="nav-group">
-        <div class="nav-group-title">财务测算</div>
-        <div class="nav-item" onclick="alert('投资估算功能开发中...')">
-          <span class="icon">💰</span> 投资估算
-        </div>
-        <div class="nav-item" onclick="alert('静态投资分析功能开发中...')">
-          <span class="icon">📊</span> 静态投资分析 / Static Investment Analysis
-        </div>
-        <div class="nav-item" onclick="alert('动态投资分析功能开发中...')">
-          <span class="icon">📈</span> 动态投资分析 / DCF Analysis
-        </div>
-        <div class="nav-item" onclick="alert('财务测算详表下载功能开发中...')">
-          <span class="icon">⬇️</span> 财务测算详表下载
+        <div class="nav-group-title" onclick="toggleNavGroup(this)">产品分析</div>
+        <div class="nav-items">
+          <div class="nav-item" data-view="chart-type" onclick="switchView('chart-type')">
+            <span class="icon">🥧</span> 产品业态分布
+          </div>
+          <div class="nav-item" data-view="chart-count" onclick="switchView('chart-count')">
+            <span class="icon">📊</span> 产品配置数量
+          </div>
+          <div class="nav-item" data-view="chart-area" onclick="switchView('chart-area')">
+            <span class="icon">📐</span> 产品面积段分布
+          </div>
+          <div class="nav-item" data-view="chart-load" onclick="switchView('chart-load')">
+            <span class="icon">🏋️</span> 产品荷载分布
+          </div>
+          <div class="nav-item" data-view="chart-height" onclick="switchView('chart-height')">
+            <span class="icon">🏢</span> 层高与层数分布
+          </div>
+          <div class="nav-item" data-view="chart-elevator" onclick="switchView('chart-elevator')">
+            <span class="icon">🛗</span> 产品电梯配置
+          </div>
+          <div class="nav-item" data-view="chart-layout" onclick="switchView('chart-layout')">
+            <span class="icon">🏠</span> 产品户型建议
+          </div>
         </div>
       </div>
       <div class="nav-group">
-        <div class="nav-group-title">综合指标</div>
-        <div class="nav-item" data-view="indicator-overview" onclick="switchView('indicator-overview')">
-          <span class="icon">📋</span> 综合指标一览
+        <div class="nav-group-title" onclick="toggleNavGroup(this)">综合指标</div>
+        <div class="nav-items">
+          <div class="nav-item" data-view="indicator-overview" onclick="switchView('indicator-overview')">
+            <span class="icon">📋</span> 综合指标一览
+          </div>
+          <div class="nav-item" onclick="downloadIndicatorDetail()">
+            <span class="icon">⬇️</span> 总体经济技术指标表下载
+          </div>
         </div>
-        <div class="nav-item" onclick="downloadIndicatorDetail()">
-          <span class="icon">⬇️</span> 总体经济技术指标表下载
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title" onclick="toggleNavGroup(this)">财务测算</div>
+        <div class="nav-items">
+          <div class="nav-item" onclick="alert('投资估算功能开发中...')">
+            <span class="icon">💰</span> 投资估算
+          </div>
+          <div class="nav-item" onclick="alert('静态投资分析功能开发中...')">
+            <span class="icon">📊</span> 静态投资分析
+          </div>
+          <div class="nav-item" onclick="alert('动态投资分析功能开发中...')">
+            <span class="icon">📈</span> 动态投资分析
+          </div>
+          <div class="nav-item" onclick="alert('财务测算详表下载功能开发中...')">
+            <span class="icon">⬇️</span> 财务测算详表下载
+          </div>
         </div>
       </div>
     </nav>
@@ -1336,6 +1385,12 @@
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       const el = document.querySelector(`.nav-item[data-view="${viewId}"]`);
       if (el) el.classList.add('active');
+    }
+
+    // 手机端导航栏手风琴切换
+    function toggleNavGroup(titleEl) {
+      const group = titleEl.closest('.nav-group');
+      group.classList.toggle('open');
     }
 
     // ==================== 下载占位 ====================
